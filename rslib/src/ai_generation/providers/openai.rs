@@ -130,9 +130,7 @@ impl AiProvider for OpenAiProvider {
         Ok(ProviderResponse {
             raw_output,
             model: Some(model),
-            tokens_used: parsed
-                .usage
-                .and_then(|usage| usage.total_tokens.map(|value| value as u32)),
+            tokens_used: parsed.usage.and_then(|usage| usage.total_tokens),
         })
     }
 }

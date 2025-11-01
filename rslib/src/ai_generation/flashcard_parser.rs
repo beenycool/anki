@@ -158,9 +158,6 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
         }
     }
 
-    if let Some(source) = object.get("source") {
-        parse_source_object(source, &mut source_url, &mut source_excerpt, &mut source_title);
-    }
 
     let front = front
         .or_else(|| extract_from_extra(&mut extra_fields, &["front", "question"]))
@@ -439,8 +436,8 @@ mod tests {
 
         let notes = parse_raw_output(raw).unwrap();
         assert_eq!(notes.len(), 2);
-        assert_eq!(notes[0].fields[0].name, "front");
-        assert_eq!(notes[0].fields[1].name, "back");
+        assert_eq!(notes[0].fields[0].name, "Front");
+        assert_eq!(notes[0].fields[1].name, "Back");
         assert_eq!(notes[0].source.as_ref().unwrap().url.as_deref(), Some("https://example.com"));
         assert_eq!(notes[1].fields[0].value, "Capital of France");
         assert!(notes[1].source.as_ref().unwrap().excerpt.as_ref().unwrap().contains("European capitals"));

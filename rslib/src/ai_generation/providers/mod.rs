@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use tracing::error;
 
 use crate::ai_generation::input_processor::ProcessedInput;
 use crate::ai_generation::{
@@ -80,7 +81,10 @@ pub(crate) fn build_flashcard_prompt(
             Ok(json) => {
                 format!("Match the tone and structure of these existing cards:\n{json}\n\n")
             }
-            Err(_) => String::new(),
+            Err(err) => {
+                error!("Failed to serialize style examples for prompt: {}", err);
+                String::new()
+            }
         }
     };
 

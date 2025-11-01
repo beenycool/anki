@@ -43,6 +43,7 @@ impl BackendAiGenerationService for Backend {
                 None,
                 model_override,
                 style_examples,
+                input.include_raw_response,
             );
             Ok((config, request))
         })?;
@@ -91,6 +92,7 @@ impl AiGenerationService for crate::collection::Collection {
             None,
             model_override,
             style_examples,
+            input.include_raw_response,
         );
 
         let outcome = run_generation(&config, request)?;
@@ -152,18 +154,6 @@ fn resolve_provider_from_value(provider: i32, config: &AiGenerationConfig) -> Pr
     }
 }
 
-fn resolve_api_key_override(
-    provided: &str,
-    config: &AiGenerationConfig,
-    provider: &ProviderKind,
-) -> Option<String> {
-    let trimmed = provided.trim();
-    if trimmed.is_empty() {
-        config.api_key_for(provider).map(ToOwned::to_owned)
-    } else {
-        Some(trimmed.to_string())
-    }
-}
 
 fn prepare_model_request(
     col: &mut Collection,
@@ -173,7 +163,7 @@ fn prepare_model_request(
     config.ensure_defaults();
 
     let provider = resolve_provider_from_value(input.provider, &config);
-    let api_key = resolve_api_key_override(&input.api_key, &config, &provider);
+    let api_key = config.api_key_for(&provider).map(ToOwned::to_owned);
 
     Ok((provider, api_key))
 }
@@ -185,12 +175,8 @@ fn run_fetch_models(provider: ProviderKind, api_key: Option<String>) -> Result<V
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
-            .map_err(|err| AnkiError::InvalidInput {
-                source: InvalidInputError {
-                    message: format!("failed to initialize async runtime: {err}"),
-                    source: None,
-                    backtrace: None,
-                },
+            .map_err(|err| AnkiError::RuntimeError {
+                info: format!("failed to initialize async runtime: {err}"),
             })?;
         runtime.block_on(fetch_models(&provider, api_key))
     }
@@ -206,12 +192,8 @@ fn run_generation(
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
-            .map_err(|err| AnkiError::InvalidInput {
-                source: InvalidInputError {
-                    message: format!("failed to initialize async runtime: {err}"),
-                    source: None,
-                    backtrace: None,
-                },
+            .map_err(|err| AnkiError::RuntimeError {
+                info: format!("failed to initialize async runtime: {err}"),
             })?;
         runtime.block_on(AiGenerationController::generate(config, request))
     }
@@ -312,25 +294,22 @@ fn split_note_fields(fields: &str) -> Vec<String> {
 }
 
 fn payload_from_request(request: &pb::GenerateFlashcardsRequest) -> Result<InputPayload> {
-    use pb::InputType;
-
-    match InputType::try_from(request.input_type).unwrap_or(InputType::Unspecified) {
-        InputType::Text => {
-            let text = request.text.trim();
+    match &request.input {
+        Some(pb::generate_flashcards_request::Input::Text(text)) => {
+            let text = text.trim();
             if text.is_empty() {
                 invalid_input!("no text provided for generation");
             }
             Ok(InputPayload::Text(text.to_string()))
         }
-        InputType::Url => {
-            let url = request.url.trim();
+        Some(pb::generate_flashcards_request::Input::Url(url)) => {
+            let url = url.trim();
             if url.is_empty() {
                 invalid_input!("no URL provided for generation");
             }
             Ok(InputPayload::Url(url.to_string()))
         }
-        InputType::File => {
-            let file = request.file.as_ref().or_invalid("missing file payload")?;
+        Some(pb::generate_flashcards_request::Input::File(file)) => {
             if file.data.is_empty() {
                 invalid_input!("file payload was empty");
             }
@@ -349,7 +328,7 @@ fn payload_from_request(request: &pb::GenerateFlashcardsRequest) -> Result<Input
             );
             Ok(InputPayload::File(payload))
         }
-        InputType::Unspecified => invalid_input!("no input provided for flashcard generation"),
+        None => invalid_input!("no input provided for flashcard generation"),
     }
 }
 

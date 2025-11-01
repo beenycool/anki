@@ -22,7 +22,7 @@ impl ProviderApiKey {
     pub fn new(provider: ProviderKind, api_key: Option<String>) -> Self {
         Self {
             provider,
-            masked: api_key.is_some(),
+            masked: false,
             api_key,
         }
     }
@@ -106,9 +106,14 @@ impl From<&pb::AiGenerationConfig> for AiGenerationConfig {
         let provider =
             pb::Provider::try_from(config.selected_provider).unwrap_or(pb::Provider::Unspecified);
 
-        AiGenerationConfig {
-            selected_provider: Some(provider_from_proto(provider))
+        let selected_provider = match provider {
+            pb::Provider::Unspecified => None,
+            other => Some(provider_from_proto(other))
                 .filter(|kind| !matches!(kind, ProviderKind::Custom(_))),
+        };
+
+        AiGenerationConfig {
+            selected_provider,
             default_note_type_id: (config.default_note_type_id != 0)
                 .then(|| NotetypeId::from(config.default_note_type_id)),
             api_keys: config.api_keys.iter().map(Into::into).collect(),
@@ -132,13 +137,12 @@ impl From<&ProviderApiKey> for pb::ProviderApiKey {
     fn from(key: &ProviderApiKey) -> Self {
         pb::ProviderApiKey {
             provider: provider_kind_to_proto(key.provider.clone()) as i32,
-            api_key: key
-                .api_key
-                .as_ref()
-                .filter(|_| !key.masked)
-                .cloned()
-                .unwrap_or_default(),
-            masked: key.masked || key.api_key.is_some(),
+            api_key: if key.masked {
+                None
+            } else {
+                key.api_key.clone()
+            },
+            masked: key.masked,
         }
     }
 }
@@ -151,12 +155,8 @@ impl From<ProviderApiKey> for pb::ProviderApiKey {
 
 impl From<&pb::ProviderApiKey> for ProviderApiKey {
     fn from(key: &pb::ProviderApiKey) -> Self {
-        let api_key = key.api_key.trim().to_string();
-        let api_key = if api_key.is_empty() {
-            None
-        } else {
-            Some(api_key)
-        };
+        let api_key = key.api_key.as_ref().map(|s| s.trim().to_string());
+        let api_key = api_key.filter(|s| !s.is_empty());
 
         let provider = pb::Provider::try_from(key.provider).unwrap_or(pb::Provider::Unspecified);
 
@@ -226,7 +226,7 @@ impl AiConfigStore {
                 if entry.masked && entry.api_key.is_none() {
                     if let Some(old) = map.get(entry.provider.as_str()) {
                         entry.api_key = old.api_key.clone();
-                        entry.masked = old.masked || old.api_key.is_some();
+                        entry.masked = old.masked;
                     }
                 }
             }

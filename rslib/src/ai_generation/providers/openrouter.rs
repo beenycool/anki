@@ -6,7 +6,7 @@ use crate::ai_generation::{AiResult, GenerationRequest, ProviderResponse};
 
 use super::{build_flashcard_prompt, require_api_key, AiProvider};
 
-const DEFAULT_MODEL: &str = "openrouter/anthropic/claude-3.5-sonnet";
+const DEFAULT_MODEL: &str = "anthropic/claude-3.5-sonnet";
 const ENDPOINT: &str = "https://openrouter.ai/api/v1/chat/completions";
 const MODELS_ENDPOINT: &str = "https://openrouter.ai/api/v1/models";
 const SYSTEM_PROMPT: &str = "You generate Anki flashcards. Respond with a JSON array only, where each object has keys front, back, source_excerpt, source_url.";
@@ -133,9 +133,7 @@ impl AiProvider for OpenRouterProvider {
         Ok(ProviderResponse {
             raw_output,
             model: Some(model),
-            tokens_used: parsed
-                .usage
-                .and_then(|usage| usage.total_tokens.map(|value| value as u32)),
+            tokens_used: parsed.usage.and_then(|usage| usage.total_tokens),
         })
     }
 }

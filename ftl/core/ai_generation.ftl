@@ -58,8 +58,8 @@ ai-generation-no-cards-returned = No flashcards were generated.
 ## Errors
 
 ai-generation-error-empty-text = Please paste some text before generating.
-ai-generation-error-empty-url = Enter a URL before generating.
-ai-generation-error-missing-file = Choose a file before generating.
+ai-generation-error-empty-url = Please enter a URL before generating.
+ai-generation-error-missing-file = Please choose a file before generating.
 ai-generation-error-empty-file = The selected file was empty.
 ai-generation-error-missing-notetype = Select a note type for the generated cards.
 ai-generation-error-invalid-notetype = The selected note type could not be loaded.

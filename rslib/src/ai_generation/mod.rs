@@ -92,6 +92,7 @@ pub struct GenerationRequest {
     pub api_key: Option<String>,
     pub model: Option<String>,
     pub style_examples: Vec<StyleExample>,
+    pub include_raw_response: bool,
 }
 
 impl GenerationRequest {
@@ -102,6 +103,7 @@ impl GenerationRequest {
         api_key: Option<String>,
         model: Option<String>,
         style_examples: Vec<StyleExample>,
+        include_raw_response: bool,
     ) -> Self {
         Self {
             provider,
@@ -110,6 +112,7 @@ impl GenerationRequest {
             api_key,
             model,
             style_examples,
+            include_raw_response,
         }
     }
 }
@@ -119,7 +122,7 @@ impl GenerationRequest {
 pub struct ProviderResponse {
     pub raw_output: String,
     pub model: Option<String>,
-    pub tokens_used: Option<u32>,
+    pub tokens_used: Option<u64>,
 }
 
 /// Represents a single generated field on a note.

@@ -1,5 +1,7 @@
 use std::path::Path;
+use std::time::Duration;
 
+use futures::StreamExt;
 use pdf_extract::extract_text_from_mem;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::{Client, Url};
@@ -43,14 +45,34 @@ impl InputProcessor {
     }
 
     async fn process_url(url: &str) -> AiResult<ProcessedInput> {
-        let client = Client::new();
+        let client = Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()?;
         let response = client.get(url).send().await?.error_for_status()?;
         let content_type = response
             .headers()
             .get(CONTENT_TYPE)
             .and_then(|value| value.to_str().ok())
             .map(|value| value.to_ascii_lowercase());
-        let bytes = response.bytes().await?.to_vec();
+        const MAX_RESPONSE_BYTES: u64 = 10 * 1024 * 1024; // 10MB limit
+
+        // Check Content-Length header if present
+        if let Some(content_length) = response.content_length() {
+            if content_length > MAX_RESPONSE_BYTES {
+                return Err(crate::invalid_input!("Response too large: {} bytes", content_length));
+            }
+        }
+
+        // Read response body with size limit
+        let mut bytes = Vec::new();
+        let mut stream = response.bytes_stream();
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk?;
+            if bytes.len() + chunk.len() > MAX_RESPONSE_BYTES as usize {
+                return Err(crate::invalid_input!("Response too large"));
+            }
+            bytes.extend_from_slice(&chunk);
+        }
 
         if is_pdf_mime(content_type.as_deref(), Some(url)) {
             let text = extract_pdf_text(&bytes)?;
@@ -149,8 +171,11 @@ fn is_pdf_mime(mime: Option<&str>, url: Option<&str>) -> bool {
 }
 
 fn is_html_mime(mime: Option<&str>) -> bool {
-    mime.map(|value| value.contains("html") || value.starts_with("text/"))
-        .unwrap_or(false)
+    mime.map(|value| {
+        let lower = value.to_lowercase();
+        lower == "text/html" || lower.contains("html") || lower == "application/xhtml+xml"
+    })
+    .unwrap_or(false)
 }
 
 fn extract_pdf_text(data: &[u8]) -> AiResult<String> {

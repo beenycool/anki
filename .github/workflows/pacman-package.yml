@@ -49,6 +49,10 @@ jobs:
         run: |
           set -euxo pipefail
           WHEEL=$(ls dist/anki-*.whl | head -n1)
+          if [[ -z "$WHEEL" || ! -f "$WHEEL" ]]; then
+            echo "Error: No wheel file found in dist/" >&2
+            exit 1
+          fi
           VERSION=$(cat .version)
           PKGDIR="$GITHUB_WORKSPACE/out/pacman/pkgroot"
           ARTIFACT_DIR="$GITHUB_WORKSPACE/out/pacman"
@@ -61,7 +65,7 @@ import runpy
 runpy.run_module("aqt", run_name="__main__")
 SCRIPT
           chmod +x "$PKGDIR/usr/bin/anki"
-          SIZE=$(du -sb "$PKGDIR/usr" | cut -f1)
+          SIZE=$(du -sb "$PKGDIR" | cut -f1)
           cat > "$PKGDIR/.PKGINFO" <<PKGINFO
 pkgname = ${PKG_NAME}
 pkgver = ${VERSION}

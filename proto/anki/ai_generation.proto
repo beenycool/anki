@@ -33,21 +33,24 @@ message FileInput {
 
 message GenerateFlashcardsRequest {
   Provider provider = 1;
-  InputType input_type = 2;
-  string text = 3;
-  string url = 4;
-  FileInput file = 5;
-  uint32 max_cards = 6;
-  int64 note_type_id = 7;
-  bool use_default_note_type = 8;
-  int64 deck_id = 9;
-  string prompt_override = 10;
-  string model_override = 11;
+  oneof input {
+    string text = 2;
+    string url = 3;
+    FileInput file = 4;
+  }
+  uint32 max_cards = 5;
+  oneof note_type_source {
+    int64 note_type_id = 6;
+    bool use_default_note_type = 7;
+  }
+  int64 deck_id = 8;
+  string prompt_override = 9;
+  string model_override = 10;
+  bool include_raw_response = 11;
 }
 
 message ListModelsRequest {
   Provider provider = 1;
-  string api_key = 2;
 }
 
 message ListModelsResponse {
@@ -74,12 +77,12 @@ message GeneratedNote {
 
 message GenerateFlashcardsResponse {
   repeated GeneratedNote notes = 1;
-  string raw_response = 2;
+  optional string raw_response = 2;
 }
 
 message ProviderApiKey {
   Provider provider = 1;
-  string api_key = 2;
+  optional string api_key = 2;
   bool masked = 3;
 }
 
@@ -96,6 +99,7 @@ message SetAiConfigRequest {
   bool persist_api_keys = 2;
 }
 
+// Service for client-facing AI generation operations
 service AiGenerationService {
   rpc GenerateFlashcards(GenerateFlashcardsRequest)
       returns (GenerateFlashcardsResponse);
@@ -104,6 +108,7 @@ service AiGenerationService {
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
 }
 
+// Service for backend-internal AI generation operations
 service BackendAiGenerationService {
   rpc GenerateFlashcards(GenerateFlashcardsRequest)
       returns (GenerateFlashcardsResponse);

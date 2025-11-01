@@ -11,7 +11,7 @@ pub struct AiGenerationController;
 
 pub struct GenerationOutcome {
     pub notes: Vec<GeneratedNote>,
-    pub raw_response: String,
+    pub raw_response: Option<String>,
 }
 
 impl AiGenerationController {
@@ -35,7 +35,11 @@ impl AiGenerationController {
 
         Ok(GenerationOutcome {
             notes,
-            raw_response: provider_response.raw_output,
+            raw_response: if request.include_raw_response {
+                Some(provider_response.raw_output)
+            } else {
+                None
+            },
         })
     }
 
@@ -48,12 +52,16 @@ impl AiGenerationController {
             } else {
                 None
             },
-            note_type_id: if req.note_type_id != 0 {
-                Some(NotetypeId::from(req.note_type_id))
-            } else {
-                None
+            note_type_id: match &req.note_type_source {
+                Some(anki_proto::ai_generation::generate_flashcards_request::NoteTypeSource::NoteTypeId(id)) if *id != 0 => {
+                    Some(NotetypeId::from(*id))
+                }
+                _ => None,
             },
-            use_default_note_type: req.use_default_note_type,
+            use_default_note_type: matches!(
+                &req.note_type_source,
+                Some(anki_proto::ai_generation::generate_flashcards_request::NoteTypeSource::UseDefaultNoteType(true))
+            ),
             deck_id: if req.deck_id != 0 {
                 Some(req.deck_id.into())
             } else {
@@ -78,7 +86,7 @@ impl AiGenerationController {
             anki_proto::ai_generation::Provider::Openrouter => ProviderKind::OpenRouter,
             anki_proto::ai_generation::Provider::Perplexity => ProviderKind::Perplexity,
             anki_proto::ai_generation::Provider::Openai => ProviderKind::OpenAi,
-            _ => ProviderKind::Gemini,
+            anki_proto::ai_generation::Provider::Unspecified => ProviderKind::Gemini,
         }
     }
 
