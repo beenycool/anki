@@ -7,6 +7,7 @@ from collections.abc import Callable
 
 import aqt.editor
 import aqt.forms
+from aqt import dialogs
 from anki._legacy import deprecated
 from anki.collection import OpChanges, OpChangesWithCount, SearchNode
 from anki.decks import DeckId
@@ -143,6 +144,11 @@ class AddCards(QMainWindow):
         self.helpButton = QPushButton(tr.actions_help(), clicked=self.helpRequested)  # type: ignore
         self.helpButton.setAutoDefault(False)
         bb.addButton(self.helpButton, QDialogButtonBox.ButtonRole.HelpRole)
+        # AI generator
+        self.aiGeneratorButton = QPushButton(tr.ai_generation_add_dialog_button())
+        self.aiGeneratorButton.setAutoDefault(False)
+        bb.addButton(self.aiGeneratorButton, ar)
+        qconnect(self.aiGeneratorButton.clicked, self._open_ai_generator)
         # history
         b = bb.addButton(f"{tr.adding_history()} {downArrow()}", ar)
         if is_mac:
@@ -215,6 +221,14 @@ class AddCards(QMainWindow):
         )
         gui_hooks.addcards_did_change_note_type(
             self, old_note.note_type(), new_note.note_type()
+        )
+
+    def _open_ai_generator(self) -> None:
+        dialogs.open(
+            "AiGenerator",
+            self.mw,
+            note_type_id=int(self.notetype_chooser.selected_notetype_id),
+            deck_id=int(self.deck_chooser.selected_deck_id),
         )
 
     def _load_new_note(self, sticky_fields_from: Note | None = None) -> None:

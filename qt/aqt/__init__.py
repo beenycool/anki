@@ -118,7 +118,7 @@ import aqt.forms
 # - make preferences modal? cmd+q does wrong thing
 
 
-from aqt import addcards, addons, browser, editcurrent, filtered_deck  # isort:skip
+from aqt import addcards, addons, ai_generator, browser, editcurrent, filtered_deck  # isort:skip
 from aqt import stats, about, preferences, mediasync  # isort:skip
 
 
@@ -134,6 +134,7 @@ class DialogManager:
         "About": [about.show, None],
         "Preferences": [preferences.Preferences, None],
         "sync_log": [mediasync.MediaSyncDialog, None],
+        "AiGenerator": [ai_generator.AiGeneratorDialog, None],
     }
 
     def open(self, name: str, *args: Any, **kwargs: Any) -> Any:

@@ -1430,6 +1430,13 @@ title="{}" {}>{}</button>""".format(
             m.action_upgrade_downgrade.setVisible(False)
         qconnect(m.actionPreferences.triggered, self.onPrefs)
 
+        self._action_ai_generator = QAction(
+            tr.ai_generation_menu_action(), self
+        )
+        m.menuTools.addSeparator()
+        m.menuTools.addAction(self._action_ai_generator)
+        qconnect(self._action_ai_generator.triggered, self.on_open_ai_generator)
+
         # View
         qconnect(
             m.actionZoomIn.triggered,
@@ -1478,6 +1485,9 @@ title="{}" {}>{}</button>""".format(
         # Update Toolbar states
         self.toolbarWeb.hide_if_allowed()
         self.bottomWeb.hide_if_allowed()
+
+    def on_open_ai_generator(self) -> None:
+        aqt.dialogs.open("AiGenerator", self)
 
     def hide_menubar(self) -> None:
         self.form.menubar.setFixedHeight(0)

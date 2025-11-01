@@ -1,0 +1,120 @@
+// Copyright: Ankitects Pty Ltd and contributors
+// License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package anki.ai_generation;
+
+import "anki/generic.proto";
+import "anki/notetypes.proto";
+
+enum Provider {
+  PROVIDER_UNSPECIFIED = 0;
+  PROVIDER_GEMINI = 1;
+  PROVIDER_OPENROUTER = 2;
+  PROVIDER_PERPLEXITY = 3;
+  PROVIDER_OPENAI = 4;
+}
+
+enum InputType {
+  INPUT_TYPE_UNSPECIFIED = 0;
+  INPUT_TYPE_TEXT = 1;
+  INPUT_TYPE_URL = 2;
+  INPUT_TYPE_FILE = 3;
+}
+
+message FileInput {
+  string filename = 1;
+  bytes data = 2;
+  string mimetype = 3;
+}
+
+message GenerateFlashcardsRequest {
+  Provider provider = 1;
+  oneof input {
+    string text = 2;
+    string url = 3;
+    FileInput file = 4;
+  }
+  uint32 max_cards = 5;
+  oneof note_type_source {
+    int64 note_type_id = 6;
+    bool use_default_note_type = 7;
+  }
+  int64 deck_id = 8;
+  string prompt_override = 9;
+  string model_override = 10;
+  bool include_raw_response = 11;
+}
+
+message ListModelsRequest {
+  Provider provider = 1;
+}
+
+message ListModelsResponse {
+  repeated string models = 1;
+}
+
+message GeneratedNoteField {
+  string name = 1;
+  string value = 2;
+}
+
+message GeneratedNoteSource {
+  string url = 1;
+  string title = 2;
+  string excerpt = 3;
+}
+
+message GeneratedNote {
+  repeated GeneratedNoteField fields = 1;
+  GeneratedNoteSource source = 2;
+  int64 note_type_id = 3;
+  int64 deck_id = 4;
+}
+
+message GenerateFlashcardsResponse {
+  repeated GeneratedNote notes = 1;
+  optional string raw_response = 2;
+}
+
+message ProviderApiKey {
+  Provider provider = 1;
+  optional string api_key = 2;
+  bool masked = 3;
+}
+
+message AiGenerationConfig {
+  Provider selected_provider = 1;
+  int64 default_note_type_id = 2;
+  repeated ProviderApiKey api_keys = 3;
+  string preferred_model = 4;
+  uint32 default_max_cards = 5;
+}
+
+message SetAiConfigRequest {
+  AiGenerationConfig config = 1;
+  bool persist_api_keys = 2;
+}
+
+// Service for client-facing AI generation operations
+service AiGenerationService {
+  rpc GenerateFlashcards(GenerateFlashcardsRequest)
+      returns (GenerateFlashcardsResponse);
+  rpc GetAiConfig(generic.Empty) returns (AiGenerationConfig);
+  rpc SetAiConfig(SetAiConfigRequest) returns (generic.Empty);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+}
+
+// Service for backend-internal AI generation operations
+service BackendAiGenerationService {
+  rpc GenerateFlashcards(GenerateFlashcardsRequest)
+      returns (GenerateFlashcardsResponse);
+  rpc GetAiConfig(generic.Empty) returns (AiGenerationConfig);
+  rpc SetAiConfig(SetAiConfigRequest) returns (generic.Empty);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+}
+
+

@@ -46,6 +46,7 @@ pub fn all_stock_notetypes(tr: &I18n) -> Vec<Notetype> {
         basic_typing(tr),
         cloze(tr),
         image_occlusion_notetype(tr),
+        ai_generated(tr),
     ]
 }
 
@@ -82,6 +83,7 @@ pub(crate) fn get_stock_notetype(kind: StockKind, tr: &I18n) -> Notetype {
         Kind::BasicOptionalReversed => basic_optional_reverse(tr),
         Kind::BasicTyping => basic_typing(tr),
         Kind::Cloze => cloze(tr),
+        Kind::AiGenerated => ai_generated(tr),
         Kind::ImageOcclusion => image_occlusion_notetype(tr),
     }
 }
@@ -94,8 +96,45 @@ pub(crate) fn get_original_stock_notetype(kind: OriginalStockKind, tr: &I18n) ->
         OriginalStockKind::BasicOptionalReversed => basic_optional_reverse(tr),
         OriginalStockKind::BasicTyping => basic_typing(tr),
         OriginalStockKind::Cloze => cloze(tr),
+        OriginalStockKind::AiGenerated => ai_generated(tr),
         OriginalStockKind::ImageOcclusion => image_occlusion_notetype(tr),
     })
+}
+
+fn ai_generated(tr: &I18n) -> Notetype {
+    let mut nt = empty_stock(
+        NotetypeKind::Normal,
+        OriginalStockKind::AiGenerated,
+        tr.ai_generation_notetype_name(),
+    );
+
+    let front = tr.ai_generation_notetype_field_front();
+    let back = tr.ai_generation_notetype_field_back();
+    let source = tr.ai_generation_notetype_field_source();
+
+    nt.add_field(front.as_ref());
+    nt.add_field(back.as_ref());
+    let source_config = nt.add_field(source.as_ref());
+    source_config.plain_text = true;
+    source_config.description = tr.ai_generation_notetype_source_description().into();
+
+    let back_template = format!(
+        "{front_side}\n\n<hr id=answer>\n\n{back}\n\n{{#Source}}\n<hr id=source>\n<small class=\"ai-source\">{{Source}}</small>\n{{/Source}}",
+        front_side = fieldref("FrontSide"),
+        back = fieldref(back.as_ref()),
+    );
+
+    nt.add_template(
+        tr.ai_generation_notetype_card_name(),
+        fieldref(front.as_ref()),
+        back_template,
+    );
+
+    nt.config.css.push_str(
+        "\n.ai-source {\n    display: block;\n    color: var(--fg-muted, #666);\n    margin-top: 0.75em;\n    font-size: 0.9em;\n}\n",
+    );
+
+    nt
 }
 
 pub(crate) fn basic(tr: &I18n) -> Notetype {

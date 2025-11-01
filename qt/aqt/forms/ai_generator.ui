@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AiGeneratorDialog</class>
+ <widget class="QDialog" name="AiGeneratorDialog">
+  <property name="windowTitle">
+   <string>ai_generation_window_title</string>
+  </property>
+  <property name="minimumWidth">
+   <number>720</number>
+  </property>
+  <property name="minimumHeight">
+   <number>520</number>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="mainSplitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QWidget" name="inputContainer">
+      <layout class="QVBoxLayout" name="inputLayout">
+       <item>
+        <widget class="QTabWidget" name="inputTabs">
+         <widget class="QWidget" name="textTab">
+          <attribute name="title">
+           <string>ai_generation_tab_text</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="textTabLayout">
+           <item>
+            <widget class="QPlainTextEdit" name="textInput">
+             <property name="placeholderText">
+             <string>ai_generation_text_placeholder</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="urlTab">
+          <attribute name="title">
+           <string>ai_generation_tab_url</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="urlTabLayout">
+           <item>
+            <layout class="QHBoxLayout" name="urlLayout">
+             <item>
+              <widget class="QLineEdit" name="urlInput">
+               <property name="placeholderText">
+               <string>ai_generation_url_placeholder</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="fetchButton">
+               <property name="text">
+               <string>ai_generation_fetch_button</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPlainTextEdit" name="urlPreview">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="placeholderText">
+              <string>ai_generation_url_preview_placeholder</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="fileTab">
+          <attribute name="title">
+           <string>ai_generation_tab_file</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="fileTabLayout">
+           <item>
+            <layout class="QHBoxLayout" name="fileLayout">
+             <item>
+              <widget class="QLineEdit" name="filePathInput">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+               <property name="placeholderText">
+                <string>ai_generation_file_placeholder</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="browseButton">
+               <property name="text">
+               <string>ai_generation_browse_button</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="fileHint">
+             <property name="text">
+             <string>ai_generation_file_hint</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="configGroup">
+         <property name="title">
+          <string>ai_generation_configuration_group</string>
+         </property>
+         <layout class="QGridLayout" name="configLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="providerLabel">
+            <property name="text">
+            <string>ai_generation_provider_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="2">
+           <widget class="QComboBox" name="providerCombo"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="geminiLabel">
+            <property name="text">
+             <string>ai_generation_gemini_key_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QLineEdit" name="geminiKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="openrouterLabel">
+            <property name="text">
+             <string>ai_generation_openrouter_key_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLineEdit" name="openrouterKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="openaiLabel">
+            <property name="text">
+             <string>ai_generation_openai_key_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QLineEdit" name="openaiKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="perplexityLabel">
+            <property name="text">
+             <string>ai_generation_perplexity_key_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="2">
+           <widget class="QLineEdit" name="perplexityKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="noteTypeLabel">
+            <property name="text">
+            <string>ai_generation_note_type_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="noteTypeCombo"/>
+          </item>
+          <item row="5" column="2">
+           <widget class="QCheckBox" name="useDefaultNoteType">
+            <property name="text">
+             <string>ai_generation_use_default_notetype</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="deckLabel">
+            <property name="text">
+            <string>ai_generation_deck_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1" colspan="2">
+           <widget class="QComboBox" name="deckCombo"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="maxCardsLabel">
+            <property name="text">
+            <string>ai_generation_max_cards_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QSpinBox" name="maxCardsSpin">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="modelLabel">
+            <property name="text">
+            <string>ai_generation_model_override_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QComboBox" name="modelOverrideCombo">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
+           </widget>
+           </item>
+          <item row="8" column="2">
+           <widget class="QPushButton" name="modelRefreshButton">
+            <property name="text">
+             <string>ai_generation_model_refresh_button</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="promptLabel">
+            <property name="text">
+            <string>ai_generation_prompt_override_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1" colspan="2">
+           <widget class="QPlainTextEdit" name="promptOverrideEdit">
+            <property name="maximumHeight">
+             <number>80</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="actionLayout">
+         <item>
+          <widget class="QPushButton" name="generateButton">
+           <property name="text">
+           <string>ai_generation_generate_button</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QProgressBar" name="progressBar">
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="textVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="actionSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearButton">
+           <property name="text">
+           <string>ai_generation_clear_button</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="previewContainer">
+      <layout class="QVBoxLayout" name="previewLayout">
+       <item>
+        <widget class="QGroupBox" name="previewGroup">
+         <property name="title">
+          <string>ai_generation_preview_group</string>
+         </property>
+         <layout class="QVBoxLayout" name="previewGroupLayout">
+          <item>
+           <widget class="QTreeWidget" name="previewTree">
+            <column>
+             <property name="text">
+              <string>ai_generation_preview_column_front</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>ai_generation_preview_column_back</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>ai_generation_preview_column_source</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="previewButtonLayout">
+         <item>
+          <spacer name="previewButtonSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addSelectedButton">
+           <property name="text">
+           <string>ai_generation_add_selected_button</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addAllButton">
+           <property name="text">
+           <string>ai_generation_add_all_button</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDialogButtonBox" name="buttonBox">
+           <property name="standardButtons">
+            <set>QDialogButtonBox::Close</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+

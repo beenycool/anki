@@ -63,6 +63,9 @@ pub enum AnkiError {
     SyncError {
         source: SyncError,
     },
+    RuntimeError {
+        info: String,
+    },
     JsonError {
         info: String,
     },

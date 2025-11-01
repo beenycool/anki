@@ -95,11 +95,61 @@ fn gather_proto_paths(proto_dir: &Path) -> Result<Vec<PathBuf>> {
 /// Set PROTOC to the custom path provided by PROTOC_BINARY, or add .exe to
 /// the standard path if on Windows.
 fn set_protoc_path() {
+    match env::var("PROTOC") {
+        Ok(value) => println!("cargo:warning=existing PROTOC env value: {value}"),
+        Err(_) => println!("cargo:warning=no existing PROTOC env value"),
+    }
     if let Ok(custom_protoc) = env::var("PROTOC_BINARY") {
-        env::set_var("PROTOC", custom_protoc);
-    } else if let Ok(bundled_protoc) = env::var("PROTOC") {
-        if cfg!(windows) && !bundled_protoc.ends_with(".exe") {
-            env::set_var("PROTOC", format!("{bundled_protoc}.exe"));
+        let path = Path::new(&custom_protoc);
+        if path.exists() && path.is_file() {
+            #[cfg(unix)]
+            if let Ok(metadata) = path.metadata() {
+                use std::os::unix::fs::PermissionsExt;
+                if metadata.permissions().mode() & 0o111 != 0 {
+                    env::set_var("PROTOC", custom_protoc);
+                    return;
+                } else {
+                    println!("cargo:warning=PROTOC_BINARY path exists but is not executable: {}", custom_protoc);
+                }
+            } else {
+                println!("cargo:warning=Could not get metadata for PROTOC_BINARY: {}", custom_protoc);
+            }
+            #[cfg(not(unix))]
+            {
+                env::set_var("PROTOC", custom_protoc);
+                return;
+            }
+        } else {
+            println!("cargo:warning=PROTOC_BINARY path does not exist or is not a file: {}", custom_protoc);
+        }
+    }
+
+    if let Ok(bundled_protoc) = env::var("PROTOC") {
+        let mut path = PathBuf::from(&bundled_protoc);
+        if cfg!(windows) && path.extension().is_none() {
+            path.set_extension("exe");
+        }
+        if path.exists() {
+            env::set_var("PROTOC", path);
+            return;
+        }
+        println!(
+            "cargo:warning=bundled protoc missing at {}, falling back to vendored binary",
+            path.display()
+        );
+    }
+
+    match protoc_bin_vendored::protoc_bin_path() {
+        Ok(vendored_path) => {
+            println!(
+                "cargo:warning=using vendored protoc binary at {}",
+                vendored_path.display()
+            );
+            env::set_var("PROTOC", vendored_path.to_string_lossy().into_owned());
+        }
+        Err(error) => {
+            eprintln!("Error: Failed to locate vendored protoc binary: {}", error);
+            std::process::exit(1);
         }
     }
 }
