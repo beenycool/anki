@@ -8,6 +8,7 @@ use super::{build_flashcard_prompt, require_api_key, AiProvider};
 
 const DEFAULT_MODEL: &str = "openrouter/anthropic/claude-3.5-sonnet";
 const ENDPOINT: &str = "https://openrouter.ai/api/v1/chat/completions";
+const MODELS_ENDPOINT: &str = "https://openrouter.ai/api/v1/models";
 const SYSTEM_PROMPT: &str = "You generate Anki flashcards. Respond with a JSON array only, where each object has keys front, back, source_excerpt, source_url.";
 
 pub struct OpenRouterProvider {
@@ -29,6 +30,46 @@ impl OpenRouterProvider {
     }
 }
 
+pub async fn list_models(api_key: &str) -> AiResult<Vec<String>> {
+    let client = Client::new();
+    let response = client
+        .get(MODELS_ENDPOINT)
+        .bearer_auth(api_key)
+        .send()
+        .await?
+        .error_for_status()?;
+
+    let bytes = response.bytes().await?;
+    let value: serde_json::Value = match serde_json::from_slice(&bytes) {
+        Ok(value) => value,
+        Err(err) => crate::invalid_input!(err, "OpenRouter models response was not valid JSON"),
+    };
+
+    if let Some(error) = value.get("error") {
+        let message = error
+            .get("message")
+            .and_then(|msg| msg.as_str())
+            .unwrap_or("OpenRouter API returned an error while listing models");
+        crate::invalid_input!("{message}");
+    }
+
+    let parsed: OpenRouterModelsResponse = match serde_json::from_value(value) {
+        Ok(value) => value,
+        Err(err) => crate::invalid_input!(err, "OpenRouter models response was not valid JSON"),
+    };
+
+    let mut models: Vec<String> = parsed
+        .data
+        .into_iter()
+        .map(|entry| entry.id)
+        .filter(|id| !id.trim().is_empty())
+        .collect();
+
+    models.sort();
+    models.dedup();
+    Ok(models)
+}
+
 #[async_trait::async_trait]
 impl AiProvider for OpenRouterProvider {
     async fn generate(
@@ -36,12 +77,10 @@ impl AiProvider for OpenRouterProvider {
         request: &GenerationRequest,
         input: &ProcessedInput,
     ) -> AiResult<ProviderResponse> {
-        let model = request
-            .model
-            .clone()
-            .unwrap_or_else(|| self.model.clone());
+        let model = request.model.clone().unwrap_or_else(|| self.model.clone());
 
-        let user_prompt = build_flashcard_prompt(input, &request.constraints);
+        let user_prompt =
+            build_flashcard_prompt(input, &request.constraints, &request.style_examples);
 
         let body = OpenRouterRequest {
             model: model.clone(),
@@ -148,4 +187,13 @@ struct OpenRouterError {
     message: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct OpenRouterModelsResponse {
+    #[serde(default)]
+    data: Vec<OpenRouterModelEntry>,
+}
 
+#[derive(Debug, Deserialize)]
+struct OpenRouterModelEntry {
+    id: String,
+}

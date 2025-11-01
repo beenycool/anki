@@ -1185,6 +1185,11 @@ class Collection(DeprecatedNamesMixin):
     ) -> ai_generation_pb2.GenerateFlashcardsResponse:
         return self._backend.generate_flashcards(request)
 
+    def list_ai_models(
+        self, request: ai_generation_pb2.ListModelsRequest
+    ) -> ai_generation_pb2.ListModelsResponse:
+        return self._backend.list_models(request)
+
     def render_markdown(self, text: str, sanitize: bool = True) -> str:
         "Not intended for public consumption at this time."
         return self._backend.render_markdown(markdown=text, sanitize=sanitize)

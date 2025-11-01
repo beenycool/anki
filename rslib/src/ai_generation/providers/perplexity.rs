@@ -8,6 +8,7 @@ use super::{build_flashcard_prompt, require_api_key, AiProvider};
 
 const DEFAULT_MODEL: &str = "sonar-reasoning";
 const ENDPOINT: &str = "https://api.perplexity.ai/chat/completions";
+const MODELS_ENDPOINT: &str = "https://api.perplexity.ai/models";
 const SYSTEM_PROMPT: &str = "You generate concise Anki flashcards and respond with JSON only. Each item must include front, back, source_excerpt, source_url.";
 
 pub struct PerplexityProvider {
@@ -29,6 +30,56 @@ impl PerplexityProvider {
     }
 }
 
+pub async fn list_models(api_key: &str) -> AiResult<Vec<String>> {
+    let client = Client::new();
+    let response = client
+        .get(MODELS_ENDPOINT)
+        .bearer_auth(api_key)
+        .send()
+        .await?
+        .error_for_status()?;
+
+    let bytes = response.bytes().await?;
+    let value: serde_json::Value = match serde_json::from_slice(&bytes) {
+        Ok(value) => value,
+        Err(err) => crate::invalid_input!(err, "Perplexity models response was not valid JSON"),
+    };
+
+    if let Some(error) = value.get("error") {
+        let message = error
+            .get("message")
+            .and_then(|msg| msg.as_str())
+            .unwrap_or("Perplexity API returned an error while listing models");
+        crate::invalid_input!("{message}");
+    }
+
+    let array = value
+        .get("data")
+        .or_else(|| value.get("models"))
+        .and_then(|entry| entry.as_array());
+
+    let Some(array) = array else {
+        crate::invalid_input!("Perplexity models response did not include a data array");
+    };
+
+    let mut models = Vec::new();
+    for item in array {
+        if let Some(id) = item.get("id").and_then(|id| id.as_str()) {
+            if !id.trim().is_empty() {
+                models.push(id.to_string());
+            }
+        } else if let Some(name) = item.as_str() {
+            if !name.trim().is_empty() {
+                models.push(name.to_string());
+            }
+        }
+    }
+
+    models.sort();
+    models.dedup();
+    Ok(models)
+}
+
 #[async_trait::async_trait]
 impl AiProvider for PerplexityProvider {
     async fn generate(
@@ -36,12 +87,10 @@ impl AiProvider for PerplexityProvider {
         request: &GenerationRequest,
         input: &ProcessedInput,
     ) -> AiResult<ProviderResponse> {
-        let model = request
-            .model
-            .clone()
-            .unwrap_or_else(|| self.model.clone());
+        let model = request.model.clone().unwrap_or_else(|| self.model.clone());
 
-        let user_prompt = build_flashcard_prompt(input, &request.constraints);
+        let user_prompt =
+            build_flashcard_prompt(input, &request.constraints, &request.style_examples);
 
         let body = PerplexityRequest {
             model: model.clone(),
@@ -147,5 +196,3 @@ struct PerplexityUsage {
 struct PerplexityError {
     message: Option<String>,
 }
-
-

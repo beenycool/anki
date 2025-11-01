@@ -19,6 +19,7 @@ pub enum ProviderKind {
     Gemini,
     OpenRouter,
     Perplexity,
+    OpenAi,
     /// Catch-all for providers not yet known at compile time.
     Custom(String),
 }
@@ -29,6 +30,7 @@ impl ProviderKind {
             ProviderKind::Gemini => "gemini",
             ProviderKind::OpenRouter => "openrouter",
             ProviderKind::Perplexity => "perplexity",
+            ProviderKind::OpenAi => "openai",
             ProviderKind::Custom(value) => value.as_str(),
         }
     }
@@ -38,6 +40,7 @@ impl ProviderKind {
             "gemini" => ProviderKind::Gemini,
             "openrouter" => ProviderKind::OpenRouter,
             "perplexity" => ProviderKind::Perplexity,
+            "openai" => ProviderKind::OpenAi,
             other => ProviderKind::Custom(other.to_string()),
         }
     }
@@ -88,6 +91,7 @@ pub struct GenerationRequest {
     pub constraints: GenerationConstraints,
     pub api_key: Option<String>,
     pub model: Option<String>,
+    pub style_examples: Vec<StyleExample>,
 }
 
 impl GenerationRequest {
@@ -97,6 +101,7 @@ impl GenerationRequest {
         constraints: GenerationConstraints,
         api_key: Option<String>,
         model: Option<String>,
+        style_examples: Vec<StyleExample>,
     ) -> Self {
         Self {
             provider,
@@ -104,6 +109,7 @@ impl GenerationRequest {
             constraints,
             api_key,
             model,
+            style_examples,
         }
     }
 }
@@ -158,4 +164,8 @@ impl GeneratedNote {
     }
 }
 
-
+/// Examples of existing cards used to help match tone/style.
+#[derive(Debug, Clone, Default)]
+pub struct StyleExample {
+    pub fields: Vec<GeneratedField>,
+}

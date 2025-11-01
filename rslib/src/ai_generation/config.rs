@@ -62,7 +62,12 @@ impl AiGenerationConfig {
             })
             .collect();
 
-        for kind in [ProviderKind::Gemini, ProviderKind::OpenRouter, ProviderKind::Perplexity] {
+        for kind in [
+            ProviderKind::Gemini,
+            ProviderKind::OpenRouter,
+            ProviderKind::Perplexity,
+            ProviderKind::OpenAi,
+        ] {
             let key = kind.as_str().to_string();
             map.entry(key).or_insert_with(|| ProviderApiKey {
                 provider: kind.clone(),
@@ -79,12 +84,11 @@ impl From<&AiGenerationConfig> for pb::AiGenerationConfig {
     fn from(config: &AiGenerationConfig) -> Self {
         pb::AiGenerationConfig {
             selected_provider: provider_kind_to_proto(config.provider_selected()) as i32,
-            default_note_type_id: config.default_note_type_id.map(Into::into).unwrap_or_default(),
-            api_keys: config
-                .api_keys
-                .iter()
+            default_note_type_id: config
+                .default_note_type_id
                 .map(Into::into)
-                .collect(),
+                .unwrap_or_default(),
+            api_keys: config.api_keys.iter().map(Into::into).collect(),
             preferred_model: config.preferred_model.clone().unwrap_or_default(),
             default_max_cards: config.default_max_cards.unwrap_or_default(),
         }
@@ -99,8 +103,8 @@ impl From<AiGenerationConfig> for pb::AiGenerationConfig {
 
 impl From<&pb::AiGenerationConfig> for AiGenerationConfig {
     fn from(config: &pb::AiGenerationConfig) -> Self {
-        let provider = pb::Provider::try_from(config.selected_provider)
-            .unwrap_or(pb::Provider::Unspecified);
+        let provider =
+            pb::Provider::try_from(config.selected_provider).unwrap_or(pb::Provider::Unspecified);
 
         AiGenerationConfig {
             selected_provider: Some(provider_from_proto(provider))
@@ -113,8 +117,7 @@ impl From<&pb::AiGenerationConfig> for AiGenerationConfig {
             } else {
                 Some(config.preferred_model.clone())
             },
-            default_max_cards: (config.default_max_cards > 0)
-                .then_some(config.default_max_cards),
+            default_max_cards: (config.default_max_cards > 0).then_some(config.default_max_cards),
         }
     }
 }
@@ -148,10 +151,7 @@ impl From<ProviderApiKey> for pb::ProviderApiKey {
 
 impl From<&pb::ProviderApiKey> for ProviderApiKey {
     fn from(key: &pb::ProviderApiKey) -> Self {
-        let api_key = key
-            .api_key
-            .trim()
-            .to_string();
+        let api_key = key.api_key.trim().to_string();
         let api_key = if api_key.is_empty() {
             None
         } else {
@@ -179,6 +179,7 @@ fn provider_kind_to_proto(kind: ProviderKind) -> pb::Provider {
         ProviderKind::Gemini => pb::Provider::Gemini,
         ProviderKind::OpenRouter => pb::Provider::Openrouter,
         ProviderKind::Perplexity => pb::Provider::Perplexity,
+        ProviderKind::OpenAi => pb::Provider::Openai,
         ProviderKind::Custom(_) => pb::Provider::Unspecified,
     }
 }
@@ -188,6 +189,7 @@ fn provider_from_proto(provider: pb::Provider) -> ProviderKind {
         pb::Provider::Gemini => ProviderKind::Gemini,
         pb::Provider::Openrouter => ProviderKind::OpenRouter,
         pb::Provider::Perplexity => ProviderKind::Perplexity,
+        pb::Provider::Openai => ProviderKind::OpenAi,
         pb::Provider::Unspecified => ProviderKind::Gemini,
     }
 }
@@ -259,9 +261,7 @@ impl From<StoredAiGenerationConfig> for AiGenerationConfig {
                 .selected_provider
                 .as_deref()
                 .map(ProviderKind::from_str),
-            default_note_type_id: value
-                .default_note_type_id
-                .map(NotetypeId::from),
+            default_note_type_id: value.default_note_type_id.map(NotetypeId::from),
             api_keys: value
                 .api_keys
                 .into_iter()
@@ -281,9 +281,7 @@ impl From<AiGenerationConfig> for StoredAiGenerationConfig {
                 .as_ref()
                 .map(ProviderKind::as_str)
                 .map(ToString::to_string),
-            default_note_type_id: value
-                .default_note_type_id
-                .map(i64::from),
+            default_note_type_id: value.default_note_type_id.map(i64::from),
             api_keys: value
                 .api_keys
                 .into_iter()
@@ -314,5 +312,3 @@ impl From<ProviderApiKey> for StoredProviderKey {
         }
     }
 }
-
-

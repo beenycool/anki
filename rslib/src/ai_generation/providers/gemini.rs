@@ -7,6 +7,7 @@ use crate::ai_generation::{AiResult, GenerationRequest, ProviderResponse};
 use super::{build_flashcard_prompt, require_api_key, AiProvider};
 
 const DEFAULT_MODEL: &str = "gemini-1.5-flash";
+const MODELS_ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
 pub struct GeminiProvider {
     client: Client,
@@ -27,6 +28,46 @@ impl GeminiProvider {
     }
 }
 
+pub async fn list_models(api_key: &str) -> AiResult<Vec<String>> {
+    let client = Client::new();
+    let response = client
+        .get(MODELS_ENDPOINT)
+        .query(&[("key", api_key)])
+        .send()
+        .await?
+        .error_for_status()?;
+
+    let bytes = response.bytes().await?;
+    let value: serde_json::Value = match serde_json::from_slice(&bytes) {
+        Ok(value) => value,
+        Err(err) => crate::invalid_input!(err, "Gemini models response was not valid JSON"),
+    };
+
+    if let Some(error) = value.get("error") {
+        let message = error
+            .get("message")
+            .and_then(|msg| msg.as_str())
+            .unwrap_or("Gemini API returned an error while listing models");
+        crate::invalid_input!("{message}");
+    }
+
+    let parsed: GeminiModelsResponse = match serde_json::from_value(value) {
+        Ok(value) => value,
+        Err(err) => crate::invalid_input!(err, "Gemini models response was not valid JSON"),
+    };
+
+    let mut models: Vec<String> = parsed
+        .models
+        .into_iter()
+        .map(|entry| entry.name.trim_start_matches("models/").to_string())
+        .filter(|name| !name.trim().is_empty())
+        .collect();
+
+    models.sort();
+    models.dedup();
+    Ok(models)
+}
+
 #[async_trait::async_trait]
 impl AiProvider for GeminiProvider {
     async fn generate(
@@ -34,11 +75,8 @@ impl AiProvider for GeminiProvider {
         request: &GenerationRequest,
         input: &ProcessedInput,
     ) -> AiResult<ProviderResponse> {
-        let model = request
-            .model
-            .clone()
-            .unwrap_or_else(|| self.model.clone());
-        let prompt = build_flashcard_prompt(input, &request.constraints);
+        let model = request.model.clone().unwrap_or_else(|| self.model.clone());
+        let prompt = build_flashcard_prompt(input, &request.constraints, &request.style_examples);
 
         let body = GeminiRequest {
             contents: vec![GeminiContent {
@@ -81,12 +119,7 @@ impl AiProvider for GeminiProvider {
             .candidates
             .into_iter()
             .find_map(|candidate| candidate.content)
-            .and_then(|content| {
-                content
-                    .parts
-                    .into_iter()
-                    .find_map(|part| part.text)
-            })
+            .and_then(|content| content.parts.into_iter().find_map(|part| part.text))
             .unwrap_or_default();
 
         if raw_output.trim().is_empty() {
@@ -155,4 +188,13 @@ struct GeminiError {
     message: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct GeminiModelsResponse {
+    #[serde(default)]
+    models: Vec<GeminiModelEntry>,
+}
 
+#[derive(Debug, Deserialize)]
+struct GeminiModelEntry {
+    name: String,
+}

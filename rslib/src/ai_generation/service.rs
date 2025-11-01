@@ -2,7 +2,9 @@ use crate::ai_generation::config::AiGenerationConfig;
 use crate::ai_generation::flashcard_parser;
 use crate::ai_generation::input_processor::InputProcessor;
 use crate::ai_generation::providers::provider_factory;
-use crate::ai_generation::{AiResult, GenerationConstraints, GenerationRequest, GeneratedNote, ProviderKind};
+use crate::ai_generation::{
+    AiResult, GeneratedNote, GenerationConstraints, GenerationRequest, ProviderKind,
+};
 use crate::notetype::NotetypeId;
 
 pub struct AiGenerationController;
@@ -37,7 +39,9 @@ impl AiGenerationController {
         })
     }
 
-    pub fn build_constraints(req: &anki_proto::ai_generation::GenerateFlashcardsRequest) -> GenerationConstraints {
+    pub fn build_constraints(
+        req: &anki_proto::ai_generation::GenerateFlashcardsRequest,
+    ) -> GenerationConstraints {
         GenerationConstraints {
             max_cards: if req.max_cards > 0 {
                 Some(req.max_cards)
@@ -73,6 +77,7 @@ impl AiGenerationController {
             anki_proto::ai_generation::Provider::Gemini => ProviderKind::Gemini,
             anki_proto::ai_generation::Provider::Openrouter => ProviderKind::OpenRouter,
             anki_proto::ai_generation::Provider::Perplexity => ProviderKind::Perplexity,
+            anki_proto::ai_generation::Provider::Openai => ProviderKind::OpenAi,
             _ => ProviderKind::Gemini,
         }
     }
@@ -82,9 +87,7 @@ impl AiGenerationController {
         config: &AiGenerationConfig,
     ) -> GenerationRequest {
         if request.api_key.is_none() {
-            request.api_key = config
-                .api_key_for(&request.provider)
-                .map(ToOwned::to_owned);
+            request.api_key = config.api_key_for(&request.provider).map(ToOwned::to_owned);
         }
 
         if request.model.is_none() {
@@ -128,7 +131,10 @@ impl AiGenerationController {
             }
 
             if let Some(source) = note.source.as_mut() {
-                if source.url.as_ref().map_or(true, |url| url.trim().is_empty())
+                if source
+                    .url
+                    .as_ref()
+                    .map_or(true, |url| url.trim().is_empty())
                     && source
                         .excerpt
                         .as_ref()
@@ -159,4 +165,3 @@ impl AiGenerationController {
         None
     }
 }
-

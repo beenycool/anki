@@ -152,54 +152,68 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="perplexityLabel">
+           <widget class="QLabel" name="openaiLabel">
             <property name="text">
-             <string>ai_generation_perplexity_key_label</string>
+             <string>ai_generation_openai_key_label</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1" colspan="2">
-           <widget class="QLineEdit" name="perplexityKey">
+           <widget class="QLineEdit" name="openaiKey">
             <property name="echoMode">
              <enum>QLineEdit::PasswordEchoOnEdit</enum>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
+           <widget class="QLabel" name="perplexityLabel">
+            <property name="text">
+             <string>ai_generation_perplexity_key_label</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="2">
+           <widget class="QLineEdit" name="perplexityKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
            <widget class="QLabel" name="noteTypeLabel">
             <property name="text">
             <string>ai_generation_note_type_label</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="5" column="1">
            <widget class="QComboBox" name="noteTypeCombo"/>
           </item>
-          <item row="4" column="2">
+          <item row="5" column="2">
            <widget class="QCheckBox" name="useDefaultNoteType">
             <property name="text">
              <string>ai_generation_use_default_notetype</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="deckLabel">
             <property name="text">
             <string>ai_generation_deck_label</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1" colspan="2">
+          <item row="6" column="1" colspan="2">
            <widget class="QComboBox" name="deckCombo"/>
           </item>
-          <item row="6" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="maxCardsLabel">
             <property name="text">
             <string>ai_generation_max_cards_label</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="7" column="1">
            <widget class="QSpinBox" name="maxCardsSpin">
             <property name="minimum">
              <number>1</number>
@@ -212,24 +226,35 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="modelLabel">
             <property name="text">
             <string>ai_generation_model_override_label</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1" colspan="2">
-           <widget class="QLineEdit" name="modelOverrideEdit"/>
+          <item row="8" column="1">
+           <widget class="QComboBox" name="modelOverrideCombo">
+            <property name="editable">
+             <bool>true</bool>
+            </property>
+           </widget>
+           </item>
+          <item row="8" column="2">
+           <widget class="QPushButton" name="modelRefreshButton">
+            <property name="text">
+             <string>ai_generation_model_refresh_button</string>
+            </property>
+           </widget>
           </item>
-          <item row="8" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="promptLabel">
             <property name="text">
             <string>ai_generation_prompt_override_label</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="1" colspan="2">
+          <item row="9" column="1" colspan="2">
            <widget class="QPlainTextEdit" name="promptOverrideEdit">
             <property name="maximumHeight">
              <number>80</number>

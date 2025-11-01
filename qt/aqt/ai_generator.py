@@ -30,12 +30,14 @@ from aqt.utils import (
 
 PROVIDER_ORDER = (
     ai_pb.Provider.PROVIDER_GEMINI,
+    ai_pb.Provider.PROVIDER_OPENAI,
     ai_pb.Provider.PROVIDER_OPENROUTER,
     ai_pb.Provider.PROVIDER_PERPLEXITY,
 )
 
 DEFAULT_MODELS: dict[int, str] = {
     ai_pb.Provider.PROVIDER_GEMINI: "gemini-1.5-flash",
+    ai_pb.Provider.PROVIDER_OPENAI: "gpt-4o-mini",
     ai_pb.Provider.PROVIDER_OPENROUTER: "openrouter/anthropic/claude-3.5-sonnet",
     ai_pb.Provider.PROVIDER_PERPLEXITY: "sonar-reasoning",
 }
@@ -66,6 +68,8 @@ class AiGeneratorDialog(QDialog):
         self._provider_masked: Dict[int, bool] = {}
         self._note_type_ids: Dict[int, int] = {}
         self._deck_ids: Dict[int, int] = {}
+        self._models_cache: Dict[int, List[str]] = {}
+        self._selected_models: Dict[int, str] = {}
         self._file_path: Optional[Path] = None
         self._requested_note_type_id = note_type_id
         self._requested_deck_id = deck_id
@@ -112,6 +116,7 @@ class AiGeneratorDialog(QDialog):
         self.form.providerLabel.setText(tr.ai_generation_provider_label())
         self.form.geminiLabel.setText(tr.ai_generation_gemini_key_label())
         self.form.openrouterLabel.setText(tr.ai_generation_openrouter_key_label())
+        self.form.openaiLabel.setText(tr.ai_generation_openai_key_label())
         self.form.perplexityLabel.setText(tr.ai_generation_perplexity_key_label())
         self.form.noteTypeLabel.setText(tr.ai_generation_note_type_label())
         self.form.useDefaultNoteType.setText(
@@ -120,6 +125,9 @@ class AiGeneratorDialog(QDialog):
         self.form.deckLabel.setText(tr.ai_generation_deck_label())
         self.form.maxCardsLabel.setText(tr.ai_generation_max_cards_label())
         self.form.modelLabel.setText(tr.ai_generation_model_override_label())
+        self.form.modelRefreshButton.setText(
+            tr.ai_generation_model_refresh_button()
+        )
         self.form.promptLabel.setText(tr.ai_generation_prompt_override_label())
 
         self.form.generateButton.setText(tr.ai_generation_generate_button())
@@ -162,9 +170,17 @@ class AiGeneratorDialog(QDialog):
         self.form.progressBar.setValue(0)
         self.form.progressBar.setTextVisible(False)
 
+        combo = self.form.modelOverrideCombo
+        combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        combo.setDuplicatesEnabled(False)
+        combo.setEditable(True)
+        combo.lineEdit().setClearButtonEnabled(True)
+        combo.editTextChanged.connect(self._on_model_text_changed)
+
         self._api_key_inputs = {
             ai_pb.Provider.PROVIDER_GEMINI: self.form.geminiKey,
             ai_pb.Provider.PROVIDER_OPENROUTER: self.form.openrouterKey,
+            ai_pb.Provider.PROVIDER_OPENAI: self.form.openaiKey,
             ai_pb.Provider.PROVIDER_PERPLEXITY: self.form.perplexityKey,
         }
         for widget in self._api_key_inputs.values():
@@ -173,16 +189,103 @@ class AiGeneratorDialog(QDialog):
         for provider in PROVIDER_ORDER:
             self.form.providerCombo.addItem(self._provider_label(provider), provider)
 
+        self.form.modelRefreshButton.clicked.connect(self._on_refresh_models)
         self._update_add_buttons()
+        self._set_model_placeholder(DEFAULT_MODELS.get(self.current_provider(), ""))
 
     def _provider_label(self, provider: int) -> str:
         if provider == ai_pb.Provider.PROVIDER_GEMINI:
             return tr.ai_generation_provider_gemini()
         if provider == ai_pb.Provider.PROVIDER_OPENROUTER:
             return tr.ai_generation_provider_openrouter()
+        if provider == ai_pb.Provider.PROVIDER_OPENAI:
+            return tr.ai_generation_provider_openai()
         if provider == ai_pb.Provider.PROVIDER_PERPLEXITY:
             return tr.ai_generation_provider_perplexity()
         return "?"
+
+    def _set_model_placeholder(self, placeholder: str) -> None:
+        line_edit = self.form.modelOverrideCombo.lineEdit()
+        if line_edit:
+            line_edit.setPlaceholderText(placeholder)
+
+    def _populate_model_combo(
+        self,
+        provider: int,
+        models: Optional[Iterable[str]] = None,
+        *,
+        preserve_current: bool = True,
+    ) -> None:
+        combo = self.form.modelOverrideCombo
+        current_text = (
+            combo.currentText() if preserve_current else self._selected_models.get(provider, "")
+        )
+        source = models if models is not None else self._models_cache.get(provider, [])
+        unique: List[str] = []
+        seen: set[str] = set()
+        for model in source or []:
+            trimmed = model.strip()
+            if trimmed and trimmed not in seen:
+                unique.append(trimmed)
+                seen.add(trimmed)
+
+        combo.blockSignals(True)
+        combo.clear()
+        for model in unique:
+            combo.addItem(model)
+        combo.setEditText(current_text or "")
+        combo.blockSignals(False)
+
+        if current_text.strip():
+            self._selected_models[provider] = current_text.strip()
+
+        self._set_model_placeholder(DEFAULT_MODELS.get(provider, ""))
+
+    def _on_model_text_changed(self, text: str) -> None:
+        provider = self.current_provider()
+        stripped = text.strip()
+        if stripped:
+            self._selected_models[provider] = stripped
+        else:
+            self._selected_models.pop(provider, None)
+
+    def _on_refresh_models(self) -> None:
+        provider = self.current_provider()
+        request = ai_pb.ListModelsRequest()
+        request.provider = provider
+
+        api_input = self._api_key_inputs.get(provider)
+        if api_input:
+            request.api_key = api_input.text().strip()
+
+        combo = self.form.modelOverrideCombo
+        button = self.form.modelRefreshButton
+
+        combo.setEnabled(False)
+        button.setEnabled(False)
+
+        def restore_ui() -> None:
+            combo.setEnabled(True)
+            button.setEnabled(True)
+
+        def on_success(response: ai_pb.ListModelsResponse) -> None:
+            restore_ui()
+            models = list(response.models)
+            self._models_cache[provider] = models
+            self._populate_model_combo(provider, models, preserve_current=True)
+            if not combo.currentText().strip() and models:
+                combo.setEditText(models[0])
+            self._set_model_placeholder(DEFAULT_MODELS.get(provider, ""))
+
+        def on_failure(error: Exception) -> None:
+            restore_ui()
+            showException(parent=self, exception=error)
+
+        QueryOp(
+            parent=self,
+            op=lambda col: col.list_ai_models(request),
+            success=on_success,
+        ).failure(on_failure).run_in_background()
 
     # ------------------------------------------------------------------
     # Data loading
@@ -195,6 +298,7 @@ class AiGeneratorDialog(QDialog):
         if selected_provider not in PROVIDER_ORDER:
             selected_provider = ai_pb.Provider.PROVIDER_GEMINI
 
+        self._selected_models[selected_provider] = config.preferred_model
         index = self.form.providerCombo.findData(selected_provider)
         if index != -1:
             self.form.providerCombo.setCurrentIndex(index)
@@ -202,7 +306,7 @@ class AiGeneratorDialog(QDialog):
         if config.default_max_cards:
             self.form.maxCardsSpin.setValue(config.default_max_cards)
 
-        self.form.modelOverrideEdit.setText(config.preferred_model)
+        self.form.modelOverrideCombo.setEditText(config.preferred_model)
         self.form.promptOverrideEdit.setPlainText("")
 
         self._provider_masked.clear()
@@ -262,11 +366,8 @@ class AiGeneratorDialog(QDialog):
 
     def _on_provider_changed(self) -> None:
         provider = self.current_provider()
-        default_model = DEFAULT_MODELS.get(provider, "")
-        if default_model:
-            self.form.modelOverrideEdit.setPlaceholderText(default_model)
-        else:
-            self.form.modelOverrideEdit.setPlaceholderText("")
+        self._set_model_placeholder(DEFAULT_MODELS.get(provider, ""))
+        self._populate_model_combo(provider, preserve_current=False)
 
     def _on_default_notetype_toggled(self, checked: bool) -> None:
         self.form.noteTypeCombo.setEnabled(not checked)
@@ -332,7 +433,9 @@ class AiGeneratorDialog(QDialog):
         self.form.urlInput.clear()
         self.form.urlPreview.clear()
         self.form.filePathInput.clear()
-        self.form.modelOverrideEdit.clear()
+        provider = self.current_provider()
+        self.form.modelOverrideCombo.setEditText("")
+        self._selected_models.pop(provider, None)
         self.form.promptOverrideEdit.clear()
         self._file_path = None
         self._set_preview_notes([])
@@ -390,9 +493,12 @@ class AiGeneratorDialog(QDialog):
         if deck_id:
             request.deck_id = deck_id
 
-        model_override = self.form.modelOverrideEdit.text().strip()
+        model_override = self.form.modelOverrideCombo.currentText().strip()
         if model_override:
             request.model_override = model_override
+            self._selected_models[provider] = model_override
+        else:
+            self._selected_models.pop(provider, None)
 
         prompt_override = self.form.promptOverrideEdit.toPlainText().strip()
         if prompt_override:
@@ -409,7 +515,12 @@ class AiGeneratorDialog(QDialog):
             default_ntid = 0
         self._default_notetype_id = default_ntid
         config.default_note_type_id = default_ntid
-        config.preferred_model = self.form.modelOverrideEdit.text().strip()
+        model_text = self.form.modelOverrideCombo.currentText().strip()
+        config.preferred_model = model_text
+        if model_text:
+            self._selected_models[config.selected_provider] = model_text
+        else:
+            self._selected_models.pop(config.selected_provider, None)
         config.default_max_cards = self.form.maxCardsSpin.value()
 
         config.api_keys.extend(self._collect_api_keys())

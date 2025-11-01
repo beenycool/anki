@@ -13,12 +13,14 @@ ai-generation-configuration-group = Configuration
 ai-generation-provider-label = Provider:
 ai-generation-gemini-key-label = Gemini API Key:
 ai-generation-openrouter-key-label = OpenRouter API Key:
+ai-generation-openai-key-label = OpenAI API Key:
 ai-generation-perplexity-key-label = Perplexity API Key:
 ai-generation-note-type-label = Note Type:
 ai-generation-use-default-notetype = Use default AI note type
 ai-generation-deck-label = Deck:
 ai-generation-max-cards-label = Max Cards:
 ai-generation-model-override-label = Model Override:
+ai-generation-model-refresh-button = Refresh Models
 ai-generation-prompt-override-label = Additional Instructions:
 ai-generation-generate-button = Generate Cards
 ai-generation-clear-button = Clear
@@ -39,6 +41,7 @@ ai-generation-notetype-source-description = Source URL or citation
 
 ai-generation-provider-gemini = Google Gemini
 ai-generation-provider-openrouter = OpenRouter
+ai-generation-provider-openai = OpenAI
 ai-generation-provider-perplexity = Perplexity
 
 ## Input & configuration
