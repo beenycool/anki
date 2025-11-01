@@ -195,7 +195,7 @@ class Translations(GeneratedTranslations):
 
 
 def backend_exception_to_pylib(err: backend_pb2.BackendError) -> Exception:
-    kind = backend_pb2.BackendError
+    kind = backend_pb2.BackendError.Kind
     val = err.kind
     help_page = err.help_page if err.HasField("help_page") else None
     context = err.context if err.context else None
