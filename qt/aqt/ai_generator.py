@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from html import escape
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import aqt.forms
 from anki import ai_generation_pb2 as ai_pb
 from anki.collection import AddNoteRequest
 from anki.decks import DeckId
 from anki.errors import AnkiError
 from anki.notes import Note
 from anki.utils import strip_html
-
-import aqt.forms
 from aqt import AnkiQt
 from aqt.operations import CollectionOp, QueryOp
 from aqt.qt import *
@@ -27,7 +27,6 @@ from aqt.utils import (
     tooltip,
     tr,
 )
-
 
 PROVIDER_ORDER = (
     ai_pb.Provider.PROVIDER_GEMINI,
@@ -85,6 +84,52 @@ class AiGeneratorDialog(QDialog):
 
     def _setup_ui(self) -> None:
         self.setWindowTitle(tr.ai_generation_window_title())
+
+        tabs = self.form.inputTabs
+        tabs.setTabText(
+            tabs.indexOf(self.form.textTab), tr.ai_generation_tab_text()
+        )
+        tabs.setTabText(
+            tabs.indexOf(self.form.urlTab), tr.ai_generation_tab_url()
+        )
+        tabs.setTabText(
+            tabs.indexOf(self.form.fileTab), tr.ai_generation_tab_file()
+        )
+
+        self.form.textInput.setPlaceholderText(tr.ai_generation_text_placeholder())
+        self.form.urlInput.setPlaceholderText(tr.ai_generation_url_placeholder())
+        self.form.urlPreview.setPlaceholderText(
+            tr.ai_generation_url_preview_placeholder()
+        )
+        self.form.filePathInput.setPlaceholderText(
+            tr.ai_generation_file_placeholder()
+        )
+        self.form.browseButton.setText(tr.ai_generation_browse_button())
+        self.form.fetchButton.setText(tr.ai_generation_fetch_button())
+        self.form.fileHint.setText(tr.ai_generation_file_hint())
+
+        self.form.configGroup.setTitle(tr.ai_generation_configuration_group())
+        self.form.providerLabel.setText(tr.ai_generation_provider_label())
+        self.form.geminiLabel.setText(tr.ai_generation_gemini_key_label())
+        self.form.openrouterLabel.setText(tr.ai_generation_openrouter_key_label())
+        self.form.perplexityLabel.setText(tr.ai_generation_perplexity_key_label())
+        self.form.noteTypeLabel.setText(tr.ai_generation_note_type_label())
+        self.form.useDefaultNoteType.setText(
+            tr.ai_generation_use_default_notetype()
+        )
+        self.form.deckLabel.setText(tr.ai_generation_deck_label())
+        self.form.maxCardsLabel.setText(tr.ai_generation_max_cards_label())
+        self.form.modelLabel.setText(tr.ai_generation_model_override_label())
+        self.form.promptLabel.setText(tr.ai_generation_prompt_override_label())
+
+        self.form.generateButton.setText(tr.ai_generation_generate_button())
+        self.form.clearButton.setText(tr.ai_generation_clear_button())
+        self.form.addSelectedButton.setText(
+            tr.ai_generation_add_selected_button()
+        )
+        self.form.addAllButton.setText(tr.ai_generation_add_all_button())
+
+        self.form.previewGroup.setTitle(tr.ai_generation_preview_group())
 
         self.form.previewTree.setColumnCount(3)
         self.form.previewTree.setHeaderLabels(
@@ -252,10 +297,11 @@ class AiGeneratorDialog(QDialog):
                 col.set_ai_generation_config(config_request)
             return col.generate_flashcards(request)
 
-        QueryOp(parent=self, op=op, success=self._on_generate_finished)
-        .failure(self._on_generate_failed)
-        .with_progress(tr.ai_generation_progress_generating())
-        .run_in_background()
+        (
+            QueryOp(parent=self, op=op, success=self._on_generate_finished)
+            .failure(self._on_generate_failed)
+            .with_progress(tr.ai_generation_progress_generating())
+        ).run_in_background()
 
     def _on_generate_finished(self, response: ai_pb.GenerateFlashcardsResponse) -> None:
         self._set_busy(False)
@@ -479,9 +525,14 @@ class AiGeneratorDialog(QDialog):
         def op(col):
             return col.add_notes(requests)
 
-        CollectionOp(parent=self, op=op, success=lambda _: self._on_add_success(unique_indices))
-        .failure(self._on_add_failure)
-        .run_in_background(initiator=self)
+        (
+            CollectionOp(
+                parent=self,
+                op=op,
+                success=lambda _: self._on_add_success(unique_indices),
+            )
+            .failure(self._on_add_failure)
+        ).run_in_background(initiator=self)
 
     def _create_note(self, proto: ai_pb.GeneratedNote) -> tuple[Note, DeckId]:
         notetype_id = proto.note_type_id or self._effective_note_type_id()
@@ -511,11 +562,20 @@ class AiGeneratorDialog(QDialog):
         # Append any remaining fields to the back field if present
         if field_map:
             back_index = next(
-                (idx for idx, field in enumerate(notetype["flds"]) if field["name"].lower() == "back"),
-                0,
+                (
+                    idx
+                    for idx, field in enumerate(notetype["flds"])
+                    if field["name"].lower() == "back"
+                ),
+                None,
             )
-            extra = "\n\n".join(field_map.values())
-            note.fields[back_index] = (note.fields[back_index] + "\n\n" + extra).strip()
+            if back_index is not None:
+                extras = [value.strip() for value in field_map.values() if value.strip()]
+                if extras:
+                    segments = [note.fields[back_index].strip(), "\n\n".join(extras)]
+                    note.fields[back_index] = "\n\n".join(
+                        segment for segment in segments if segment
+                    )
 
         return note, DeckId(deck_id)
 
@@ -530,14 +590,17 @@ class AiGeneratorDialog(QDialog):
     def _format_source(self, source: ai_pb.GeneratedNoteSource) -> str:
         parts: List[str] = []
         if source.excerpt:
-            parts.append(source.excerpt)
+            parts.append(escape(source.excerpt))
         if source.url:
             if source.title:
-                parts.append(f"<a href=\"{source.url}\">{source.title}</a>")
+                parts.append(
+                    f'<a href="{escape(source.url, quote=True)}">'
+                    f"{escape(source.title)}</a>"
+                )
             else:
-                parts.append(source.url)
+                parts.append(escape(source.url))
         elif source.title:
-            parts.append(source.title)
+            parts.append(escape(source.title))
         return "<br>".join(parts)
 
     def _on_add_success(self, indices: Iterable[int]) -> None:

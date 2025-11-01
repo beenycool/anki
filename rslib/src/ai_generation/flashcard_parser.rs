@@ -101,7 +101,7 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
             "front" | "question" | "prompt" | "q" => {
                 if front.is_none() {
                     if let Some(text) = value_to_string(value) {
-                        front = Some((key.clone(), text));
+                        front = Some(("Front".to_string(), text));
                     }
                 }
                 continue;
@@ -109,7 +109,7 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
             "back" | "answer" | "response" | "a" => {
                 if back.is_none() {
                     if let Some(text) = value_to_string(value) {
-                        back = Some((key.clone(), text));
+                        back = Some(("Back".to_string(), text));
                     }
                 }
                 continue;
@@ -162,8 +162,12 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
         parse_source_object(source, &mut source_url, &mut source_excerpt, &mut source_title);
     }
 
-    let front = front.or_else(|| extract_from_extra(&mut extra_fields, &["front", "question"]))?;
-    let back = back.or_else(|| extract_from_extra(&mut extra_fields, &["back", "answer"]))?;
+    let front = front
+        .or_else(|| extract_from_extra(&mut extra_fields, &["front", "question"]))
+        .map(|(_, value)| ("Front".to_string(), value))?;
+    let back = back
+        .or_else(|| extract_from_extra(&mut extra_fields, &["back", "answer"]))
+        .map(|(_, value)| ("Back".to_string(), value))?;
 
     let mut seen = HashSet::new();
     let mut fields = Vec::new();

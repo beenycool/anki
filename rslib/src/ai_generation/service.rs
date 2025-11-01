@@ -129,7 +129,14 @@ impl AiGenerationController {
 
             if let Some(source) = note.source.as_mut() {
                 if source.url.as_ref().map_or(true, |url| url.trim().is_empty())
-                    && source.excerpt.as_ref().map_or(true, |text| text.trim().is_empty())
+                    && source
+                        .excerpt
+                        .as_ref()
+                        .map_or(true, |text| text.trim().is_empty())
+                    && source
+                        .title
+                        .as_ref()
+                        .map_or(true, |title| title.trim().is_empty())
                 {
                     note.source = None;
                 }

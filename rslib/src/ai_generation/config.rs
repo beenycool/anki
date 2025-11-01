@@ -203,7 +203,27 @@ impl AiConfigStore {
     }
 
     pub fn save(col: &mut Collection, config: &AiGenerationConfig) -> AiResult<()> {
-        let stored = StoredAiGenerationConfig::from(config.clone());
+        let mut merged = config.clone();
+
+        if let Some(existing) = col.get_config_optional::<StoredAiGenerationConfig>(CONFIG_KEY) {
+            let previous: AiGenerationConfig = existing.into();
+            let mut map: BTreeMap<String, ProviderApiKey> = previous
+                .api_keys
+                .into_iter()
+                .map(|key| (key.provider.as_str().to_string(), key))
+                .collect();
+
+            for entry in merged.api_keys.iter_mut() {
+                if entry.masked && entry.api_key.is_none() {
+                    if let Some(old) = map.get(entry.provider.as_str()) {
+                        entry.api_key = old.api_key.clone();
+                        entry.masked = old.masked || old.api_key.is_some();
+                    }
+                }
+            }
+        }
+
+        let stored = StoredAiGenerationConfig::from(merged);
         col.set_config(CONFIG_KEY, &stored)?;
         Ok(())
     }

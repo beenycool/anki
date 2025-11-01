@@ -1,4 +1,39 @@
 ai-generation-window-title = AI Flashcard Generator
+ai-generation-tab-text = Text
+ai-generation-tab-url = URL
+ai-generation-tab-file = File
+ai-generation-text-placeholder = Paste content here…
+ai-generation-url-placeholder = https://example.com/article
+ai-generation-url-preview-placeholder = Fetched content preview…
+ai-generation-file-placeholder = Select a file…
+ai-generation-browse-button = Browse…
+ai-generation-fetch-button = Fetch
+ai-generation-file-hint = Supports PDF, Markdown, and plain text files.
+ai-generation-configuration-group = Configuration
+ai-generation-provider-label = Provider:
+ai-generation-gemini-key-label = Gemini API Key:
+ai-generation-openrouter-key-label = OpenRouter API Key:
+ai-generation-perplexity-key-label = Perplexity API Key:
+ai-generation-note-type-label = Note Type:
+ai-generation-use-default-notetype = Use default AI note type
+ai-generation-deck-label = Deck:
+ai-generation-max-cards-label = Max Cards:
+ai-generation-model-override-label = Model Override:
+ai-generation-prompt-override-label = Additional Instructions:
+ai-generation-generate-button = Generate Cards
+ai-generation-clear-button = Clear
+ai-generation-preview-group = Preview
+ai-generation-add-selected-button = Add Selected
+ai-generation-add-all-button = Add All
+
+## Notetype
+
+ai-generation-notetype-name = AI Generated
+ai-generation-notetype-field-front = Front
+ai-generation-notetype-field-back = Back
+ai-generation-notetype-field-source = Source
+ai-generation-notetype-card-name = Card 1
+ai-generation-notetype-source-description = Source URL or citation
 
 ## Providers
 

@@ -3,7 +3,7 @@
  <class>AiGeneratorDialog</class>
  <widget class="QDialog" name="AiGeneratorDialog">
   <property name="windowTitle">
-   <string>AI Flashcard Generator</string>
+   <string>ai_generation_window_title</string>
   </property>
   <property name="minimumWidth">
    <number>720</number>
@@ -23,13 +23,13 @@
         <widget class="QTabWidget" name="inputTabs">
          <widget class="QWidget" name="textTab">
           <attribute name="title">
-           <string>Text</string>
+           <string>ai_generation_tab_text</string>
           </attribute>
           <layout class="QVBoxLayout" name="textTabLayout">
            <item>
             <widget class="QPlainTextEdit" name="textInput">
              <property name="placeholderText">
-              <string>Paste content here…</string>
+             <string>ai_generation_text_placeholder</string>
              </property>
             </widget>
            </item>
@@ -37,7 +37,7 @@
          </widget>
          <widget class="QWidget" name="urlTab">
           <attribute name="title">
-           <string>URL</string>
+           <string>ai_generation_tab_url</string>
           </attribute>
           <layout class="QVBoxLayout" name="urlTabLayout">
            <item>
@@ -45,14 +45,14 @@
              <item>
               <widget class="QLineEdit" name="urlInput">
                <property name="placeholderText">
-                <string>https://example.com/article</string>
+               <string>ai_generation_url_placeholder</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="fetchButton">
                <property name="text">
-                <string>Fetch</string>
+               <string>ai_generation_fetch_button</string>
                </property>
               </widget>
              </item>
@@ -64,7 +64,7 @@
               <bool>true</bool>
              </property>
              <property name="placeholderText">
-              <string>Fetched content preview…</string>
+              <string>ai_generation_url_preview_placeholder</string>
              </property>
             </widget>
            </item>
@@ -72,7 +72,7 @@
          </widget>
          <widget class="QWidget" name="fileTab">
           <attribute name="title">
-           <string>File</string>
+           <string>ai_generation_tab_file</string>
           </attribute>
           <layout class="QVBoxLayout" name="fileTabLayout">
            <item>
@@ -83,14 +83,14 @@
                 <bool>true</bool>
                </property>
                <property name="placeholderText">
-                <string>Select a file…</string>
+                <string>ai_generation_file_placeholder</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="browseButton">
                <property name="text">
-                <string>Browse…</string>
+               <string>ai_generation_browse_button</string>
                </property>
               </widget>
              </item>
@@ -99,7 +99,7 @@
            <item>
             <widget class="QLabel" name="fileHint">
              <property name="text">
-              <string>Supports PDF, Markdown, and plain text files.</string>
+             <string>ai_generation_file_hint</string>
              </property>
             </widget>
            </item>
@@ -110,13 +110,13 @@
        <item>
         <widget class="QGroupBox" name="configGroup">
          <property name="title">
-          <string>Configuration</string>
+          <string>ai_generation_configuration_group</string>
          </property>
          <layout class="QGridLayout" name="configLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="providerLabel">
             <property name="text">
-             <string>Provider:</string>
+            <string>ai_generation_provider_label</string>
             </property>
            </widget>
           </item>
@@ -126,7 +126,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="geminiLabel">
             <property name="text">
-             <string>Gemini API Key:</string>
+             <string>ai_generation_gemini_key_label</string>
             </property>
            </widget>
           </item>
@@ -140,7 +140,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="openrouterLabel">
             <property name="text">
-             <string>OpenRouter API Key:</string>
+             <string>ai_generation_openrouter_key_label</string>
             </property>
            </widget>
           </item>
@@ -154,7 +154,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="perplexityLabel">
             <property name="text">
-             <string>Perplexity API Key:</string>
+             <string>ai_generation_perplexity_key_label</string>
             </property>
            </widget>
           </item>
@@ -168,7 +168,7 @@
           <item row="4" column="0">
            <widget class="QLabel" name="noteTypeLabel">
             <property name="text">
-             <string>Note Type:</string>
+            <string>ai_generation_note_type_label</string>
             </property>
            </widget>
           </item>
@@ -178,14 +178,14 @@
           <item row="4" column="2">
            <widget class="QCheckBox" name="useDefaultNoteType">
             <property name="text">
-             <string>Use default AI note type</string>
+             <string>ai_generation_use_default_notetype</string>
             </property>
            </widget>
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="deckLabel">
             <property name="text">
-             <string>Deck:</string>
+            <string>ai_generation_deck_label</string>
             </property>
            </widget>
           </item>
@@ -195,7 +195,7 @@
           <item row="6" column="0">
            <widget class="QLabel" name="maxCardsLabel">
             <property name="text">
-             <string>Max Cards:</string>
+            <string>ai_generation_max_cards_label</string>
             </property>
            </widget>
           </item>
@@ -215,7 +215,7 @@
           <item row="7" column="0">
            <widget class="QLabel" name="modelLabel">
             <property name="text">
-             <string>Model Override:</string>
+            <string>ai_generation_model_override_label</string>
             </property>
            </widget>
           </item>
@@ -225,7 +225,7 @@
           <item row="8" column="0">
            <widget class="QLabel" name="promptLabel">
             <property name="text">
-             <string>Additional Instructions:</string>
+            <string>ai_generation_prompt_override_label</string>
             </property>
            </widget>
           </item>
@@ -244,7 +244,7 @@
          <item>
           <widget class="QPushButton" name="generateButton">
            <property name="text">
-            <string>Generate Cards</string>
+           <string>ai_generation_generate_button</string>
            </property>
           </widget>
          </item>
@@ -274,7 +274,7 @@
          <item>
           <widget class="QPushButton" name="clearButton">
            <property name="text">
-            <string>Clear</string>
+           <string>ai_generation_clear_button</string>
            </property>
           </widget>
          </item>
@@ -287,24 +287,24 @@
        <item>
         <widget class="QGroupBox" name="previewGroup">
          <property name="title">
-          <string>Preview</string>
+          <string>ai_generation_preview_group</string>
          </property>
          <layout class="QVBoxLayout" name="previewGroupLayout">
           <item>
            <widget class="QTreeWidget" name="previewTree">
             <column>
              <property name="text">
-              <string>Front</string>
+              <string>ai_generation_preview_column_front</string>
              </property>
             </column>
             <column>
              <property name="text">
-              <string>Back</string>
+              <string>ai_generation_preview_column_back</string>
              </property>
             </column>
             <column>
              <property name="text">
-              <string>Source</string>
+              <string>ai_generation_preview_column_source</string>
              </property>
             </column>
            </widget>
@@ -330,7 +330,7 @@
          <item>
           <widget class="QPushButton" name="addSelectedButton">
            <property name="text">
-            <string>Add Selected</string>
+           <string>ai_generation_add_selected_button</string>
            </property>
            <property name="enabled">
             <bool>false</bool>
@@ -340,7 +340,7 @@
          <item>
           <widget class="QPushButton" name="addAllButton">
            <property name="text">
-            <string>Add All</string>
+           <string>ai_generation_add_all_button</string>
            </property>
            <property name="enabled">
             <bool>false</bool>
