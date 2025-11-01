@@ -149,6 +149,7 @@ message StockNotetype {
     KIND_BASIC_TYPING = 3;
     KIND_CLOZE = 4;
     KIND_IMAGE_OCCLUSION = 5;
+    KIND_AI_GENERATED = 6;
   }
   // This is decoupled from Kind to allow us to evolve notetypes over time
   // (eg an older notetype might require different JS), and allow us to store
@@ -162,6 +163,7 @@ message StockNotetype {
     ORIGINAL_STOCK_KIND_BASIC_TYPING = 4;
     ORIGINAL_STOCK_KIND_CLOZE = 5;
     ORIGINAL_STOCK_KIND_IMAGE_OCCLUSION = 6;
+    ORIGINAL_STOCK_KIND_AI_GENERATED = 7;
   }
 
   Kind kind = 1;

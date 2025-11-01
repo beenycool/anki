@@ -6,6 +6,7 @@ from . import (
     addmodel,
     addonconf,
     addons,
+    ai_generator,
     browser,
     browserdisp,
     browseropts,

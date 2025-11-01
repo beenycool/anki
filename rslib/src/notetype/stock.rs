@@ -45,6 +45,7 @@ pub fn all_stock_notetypes(tr: &I18n) -> Vec<Notetype> {
         basic_optional_reverse(tr),
         basic_typing(tr),
         cloze(tr),
+        ai_generated(tr),
         image_occlusion_notetype(tr),
     ]
 }
@@ -82,6 +83,7 @@ pub(crate) fn get_stock_notetype(kind: StockKind, tr: &I18n) -> Notetype {
         Kind::BasicOptionalReversed => basic_optional_reverse(tr),
         Kind::BasicTyping => basic_typing(tr),
         Kind::Cloze => cloze(tr),
+        Kind::AiGenerated => ai_generated(tr),
         Kind::ImageOcclusion => image_occlusion_notetype(tr),
     }
 }
@@ -94,8 +96,41 @@ pub(crate) fn get_original_stock_notetype(kind: OriginalStockKind, tr: &I18n) ->
         OriginalStockKind::BasicOptionalReversed => basic_optional_reverse(tr),
         OriginalStockKind::BasicTyping => basic_typing(tr),
         OriginalStockKind::Cloze => cloze(tr),
+        OriginalStockKind::AiGenerated => ai_generated(tr),
         OriginalStockKind::ImageOcclusion => image_occlusion_notetype(tr),
     })
+}
+
+fn ai_generated(_tr: &I18n) -> Notetype {
+    let mut nt = empty_stock(
+        NotetypeKind::Normal,
+        OriginalStockKind::AiGenerated,
+        "AI Generated",
+    );
+
+    let front = "Front";
+    let back = "Back";
+    let source = "Source";
+
+    nt.add_field(front);
+    nt.add_field(back);
+    let source_config = nt.add_field(source);
+    source_config.plain_text = true;
+    source_config.description = Some("Source URL or citation".into());
+
+    let back_template = format!(
+        "{front_side}\n\n<hr id=answer>\n\n{back}\n\n{{#Source}}\n<hr id=source>\n<small class=\"ai-source\">{{Source}}</small>\n{{/Source}}",
+        front_side = fieldref("FrontSide"),
+        back = fieldref(back),
+    );
+
+    nt.add_template("Card 1", fieldref(front), back_template);
+
+    nt.config.css.push_str(
+        "\n.ai-source {\n    display: block;\n    color: var(--fg-muted, #666);\n    margin-top: 0.75em;\n    font-size: 0.9em;\n}\n",
+    );
+
+    nt
 }
 
 pub(crate) fn basic(tr: &I18n) -> Notetype {

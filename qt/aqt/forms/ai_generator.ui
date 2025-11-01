@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AiGeneratorDialog</class>
+ <widget class="QDialog" name="AiGeneratorDialog">
+  <property name="windowTitle">
+   <string>AI Flashcard Generator</string>
+  </property>
+  <property name="minimumWidth">
+   <number>720</number>
+  </property>
+  <property name="minimumHeight">
+   <number>520</number>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QSplitter" name="mainSplitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QWidget" name="inputContainer">
+      <layout class="QVBoxLayout" name="inputLayout">
+       <item>
+        <widget class="QTabWidget" name="inputTabs">
+         <widget class="QWidget" name="textTab">
+          <attribute name="title">
+           <string>Text</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="textTabLayout">
+           <item>
+            <widget class="QPlainTextEdit" name="textInput">
+             <property name="placeholderText">
+              <string>Paste content here…</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="urlTab">
+          <attribute name="title">
+           <string>URL</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="urlTabLayout">
+           <item>
+            <layout class="QHBoxLayout" name="urlLayout">
+             <item>
+              <widget class="QLineEdit" name="urlInput">
+               <property name="placeholderText">
+                <string>https://example.com/article</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="fetchButton">
+               <property name="text">
+                <string>Fetch</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPlainTextEdit" name="urlPreview">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="placeholderText">
+              <string>Fetched content preview…</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="fileTab">
+          <attribute name="title">
+           <string>File</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="fileTabLayout">
+           <item>
+            <layout class="QHBoxLayout" name="fileLayout">
+             <item>
+              <widget class="QLineEdit" name="filePathInput">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+               <property name="placeholderText">
+                <string>Select a file…</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="browseButton">
+               <property name="text">
+                <string>Browse…</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="fileHint">
+             <property name="text">
+              <string>Supports PDF, Markdown, and plain text files.</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="configGroup">
+         <property name="title">
+          <string>Configuration</string>
+         </property>
+         <layout class="QGridLayout" name="configLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="providerLabel">
+            <property name="text">
+             <string>Provider:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" colspan="2">
+           <widget class="QComboBox" name="providerCombo"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="geminiLabel">
+            <property name="text">
+             <string>Gemini API Key:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QLineEdit" name="geminiKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="openrouterLabel">
+            <property name="text">
+             <string>OpenRouter API Key:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLineEdit" name="openrouterKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="perplexityLabel">
+            <property name="text">
+             <string>Perplexity API Key:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QLineEdit" name="perplexityKey">
+            <property name="echoMode">
+             <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="noteTypeLabel">
+            <property name="text">
+             <string>Note Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="noteTypeCombo"/>
+          </item>
+          <item row="4" column="2">
+           <widget class="QCheckBox" name="useDefaultNoteType">
+            <property name="text">
+             <string>Use default AI note type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="deckLabel">
+            <property name="text">
+             <string>Deck:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1" colspan="2">
+           <widget class="QComboBox" name="deckCombo"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="maxCardsLabel">
+            <property name="text">
+             <string>Max Cards:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QSpinBox" name="maxCardsSpin">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="modelLabel">
+            <property name="text">
+             <string>Model Override:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1" colspan="2">
+           <widget class="QLineEdit" name="modelOverrideEdit"/>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="promptLabel">
+            <property name="text">
+             <string>Additional Instructions:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1" colspan="2">
+           <widget class="QPlainTextEdit" name="promptOverrideEdit">
+            <property name="maximumHeight">
+             <number>80</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="actionLayout">
+         <item>
+          <widget class="QPushButton" name="generateButton">
+           <property name="text">
+            <string>Generate Cards</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QProgressBar" name="progressBar">
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="textVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="actionSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearButton">
+           <property name="text">
+            <string>Clear</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="previewContainer">
+      <layout class="QVBoxLayout" name="previewLayout">
+       <item>
+        <widget class="QGroupBox" name="previewGroup">
+         <property name="title">
+          <string>Preview</string>
+         </property>
+         <layout class="QVBoxLayout" name="previewGroupLayout">
+          <item>
+           <widget class="QTreeWidget" name="previewTree">
+            <column>
+             <property name="text">
+              <string>Front</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Back</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Source</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="previewButtonLayout">
+         <item>
+          <spacer name="previewButtonSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addSelectedButton">
+           <property name="text">
+            <string>Add Selected</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addAllButton">
+           <property name="text">
+            <string>Add All</string>
+           </property>
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDialogButtonBox" name="buttonBox">
+           <property name="standardButtons">
+            <set>QDialogButtonBox::Close</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+

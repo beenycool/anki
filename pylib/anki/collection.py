@@ -12,6 +12,7 @@ from anki import (
     collection_pb2,
     config_pb2,
     generic_pb2,
+    ai_generation_pb2,
     image_occlusion_pb2,
     import_export_pb2,
     links_pb2,
@@ -1167,6 +1168,22 @@ class Collection(DeprecatedNamesMixin):
 
     def set_preferences(self, prefs: Preferences) -> OpChanges:
         return self._backend.set_preferences(prefs)
+
+    # AI generation
+    ##########################################################################
+
+    def get_ai_generation_config(self) -> ai_generation_pb2.AiGenerationConfig:
+        return self._backend.get_ai_config()
+
+    def set_ai_generation_config(
+        self, request: ai_generation_pb2.SetAiConfigRequest
+    ) -> None:
+        self._backend.set_ai_config(request)
+
+    def generate_flashcards(
+        self, request: ai_generation_pb2.GenerateFlashcardsRequest
+    ) -> ai_generation_pb2.GenerateFlashcardsResponse:
+        return self._backend.generate_flashcards(request)
 
     def render_markdown(self, text: str, sanitize: bool = True) -> str:
         "Not intended for public consumption at this time."
