@@ -192,6 +192,7 @@ impl AnkiError {
             AnkiError::FsrsUnableToDetermineDesiredRetention => tr
                 .deck_config_unable_to_determine_desired_retention()
                 .into(),
+            AnkiError::RuntimeError { info } => info.clone(),
         }
     }
 

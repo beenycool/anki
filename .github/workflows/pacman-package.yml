@@ -94,7 +94,7 @@ jobs:
           depend = python-pyqt6-webengine
           depend = sqlite
           PKGINFO
-          (cd "$PKGDIR" && fakeroot bsdtar --format=mtree --options='!all,use-set,type,uid,gid,mode,time' -f .MTREE .)
+          (cd "$PKGDIR" && fakeroot bsdtar -c --format=mtree --options='!all,use-set,type,uid,gid,mode,time' -f .MTREE .)
           PACKAGE_FILE="${ARTIFACT_DIR}/${PKG_NAME}-${VERSION}-1-x86_64.pkg.tar.zst"
           mkdir -p "$ARTIFACT_DIR"
           (cd "$PKGDIR" && fakeroot tar --zstd -cf "$PACKAGE_FILE" .PKGINFO .MTREE usr)

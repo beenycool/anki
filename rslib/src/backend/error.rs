@@ -50,6 +50,7 @@ impl AnkiError {
             AnkiError::SchedulerUpgradeRequired => Kind::SchedulerUpgradeRequired,
             AnkiError::FsrsInsufficientReviews { .. } => Kind::InvalidInput,
             AnkiError::InvalidCertificateFormat => Kind::InvalidCertificateFormat,
+            AnkiError::RuntimeError { .. } => Kind::InvalidInput,
         };
 
         anki_proto::backend::BackendError {
