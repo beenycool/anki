@@ -29,7 +29,7 @@ jobs:
           # Reduce parallel jobs to prevent resource exhaustion
           echo "CARGO_BUILD_JOBS=2" >> $GITHUB_ENV
           # Limit rustc parallel codegen units to reduce memory usage
-          echo "RUSTFLAGS=-C codegen-units=1" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-C codegen-units=1 -C target-cpu=x86-64" >> $GITHUB_ENV
           # Disable incremental compilation to save disk space
           echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
 
