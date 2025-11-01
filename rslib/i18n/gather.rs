@@ -37,8 +37,15 @@ pub fn get_ftl_data() -> TranslationsByLang {
 
 /// For each .ftl file in the provided folder, add it to the translation map.
 fn add_folder(map: &mut TranslationsByLang, folder: &Path, lang: &str) {
+    let Ok(entries) = fs::read_dir(folder) else {
+        println!(
+            "cargo:warning=skipping missing translation folder {}",
+            folder.display()
+        );
+        return;
+    };
     let map_entry = map.entry(lang.to_string()).or_default();
-    for entry in fs::read_dir(folder).unwrap() {
+    for entry in entries {
         let entry = entry.unwrap();
         let fname = entry.file_name().to_string_lossy().to_string();
         if !fname.ends_with(".ftl") {
@@ -59,7 +66,11 @@ fn add_folder(map: &mut TranslationsByLang, folder: &Path, lang: &str) {
 /// If ignore_templates is true, the templates/ folder will be ignored, on the
 /// assumption the templates were extracted from the source tree.
 fn add_translation_root(map: &mut TranslationsByLang, root: &Path, ignore_templates: bool) {
-    for entry in fs::read_dir(root).unwrap() {
+    let Ok(entries) = fs::read_dir(root) else {
+        println!("cargo:warning=skipping missing translation root {}", root.display());
+        return;
+    };
+    for entry in entries {
         let entry = entry.unwrap();
         let lang = entry.file_name().to_string_lossy().to_string();
         if ignore_templates && lang == "templates" {

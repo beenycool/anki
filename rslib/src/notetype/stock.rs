@@ -116,7 +116,7 @@ fn ai_generated(tr: &I18n) -> Notetype {
     nt.add_field(back.as_ref());
     let source_config = nt.add_field(source.as_ref());
     source_config.plain_text = true;
-    source_config.description = Some(tr.ai_generation_notetype_source_description().into());
+    source_config.description = tr.ai_generation_notetype_source_description().into();
 
     let back_template = format!(
         "{front_side}\n\n<hr id=answer>\n\n{back}\n\n{{#Source}}\n<hr id=source>\n<small class=\"ai-source\">{{Source}}</small>\n{{/Source}}",

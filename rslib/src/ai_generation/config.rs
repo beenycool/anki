@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::convert::TryFrom;
 
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,7 @@ use crate::notetype::NotetypeId;
 
 const CONFIG_KEY: &str = "aiGenerationConfig";
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct ProviderApiKey {
     pub provider: ProviderKind,
     pub api_key: Option<String>,
@@ -98,8 +99,11 @@ impl From<AiGenerationConfig> for pb::AiGenerationConfig {
 
 impl From<&pb::AiGenerationConfig> for AiGenerationConfig {
     fn from(config: &pb::AiGenerationConfig) -> Self {
+        let provider = pb::Provider::try_from(config.selected_provider)
+            .unwrap_or(pb::Provider::Unspecified);
+
         AiGenerationConfig {
-            selected_provider: Some(provider_from_proto(config.provider()))
+            selected_provider: Some(provider_from_proto(provider))
                 .filter(|kind| !matches!(kind, ProviderKind::Custom(_))),
             default_note_type_id: (config.default_note_type_id != 0)
                 .then(|| NotetypeId::from(config.default_note_type_id)),
@@ -154,8 +158,10 @@ impl From<&pb::ProviderApiKey> for ProviderApiKey {
             Some(api_key)
         };
 
+        let provider = pb::Provider::try_from(key.provider).unwrap_or(pb::Provider::Unspecified);
+
         ProviderApiKey {
-            provider: provider_from_proto(pb::Provider::from_i32(key.provider).unwrap_or(pb::Provider::ProviderGemini)),
+            provider: provider_from_proto(provider),
             masked: key.masked,
             api_key,
         }
@@ -170,19 +176,19 @@ impl From<pb::ProviderApiKey> for ProviderApiKey {
 
 fn provider_kind_to_proto(kind: ProviderKind) -> pb::Provider {
     match kind {
-        ProviderKind::Gemini => pb::Provider::ProviderGemini,
-        ProviderKind::OpenRouter => pb::Provider::ProviderOpenrouter,
-        ProviderKind::Perplexity => pb::Provider::ProviderPerplexity,
-        ProviderKind::Custom(_) => pb::Provider::ProviderUnspecified,
+        ProviderKind::Gemini => pb::Provider::Gemini,
+        ProviderKind::OpenRouter => pb::Provider::Openrouter,
+        ProviderKind::Perplexity => pb::Provider::Perplexity,
+        ProviderKind::Custom(_) => pb::Provider::Unspecified,
     }
 }
 
 fn provider_from_proto(provider: pb::Provider) -> ProviderKind {
     match provider {
-        pb::Provider::ProviderGemini => ProviderKind::Gemini,
-        pb::Provider::ProviderOpenrouter => ProviderKind::OpenRouter,
-        pb::Provider::ProviderPerplexity => ProviderKind::Perplexity,
-        pb::Provider::ProviderUnspecified => ProviderKind::Gemini,
+        pb::Provider::Gemini => ProviderKind::Gemini,
+        pb::Provider::Openrouter => ProviderKind::OpenRouter,
+        pb::Provider::Perplexity => ProviderKind::Perplexity,
+        pb::Provider::Unspecified => ProviderKind::Gemini,
     }
 }
 
@@ -192,7 +198,8 @@ pub struct AiConfigStore;
 
 impl AiConfigStore {
     pub fn load(col: &Collection) -> AiResult<AiGenerationConfig> {
-        let stored: Option<StoredAiGenerationConfig> = col.get_config_optional(CONFIG_KEY);
+        let stored: Option<StoredAiGenerationConfig> =
+            col.get_config_optional::<StoredAiGenerationConfig, _>(CONFIG_KEY);
 
         let mut config = match stored {
             Some(stored) => stored.into(),
@@ -205,9 +212,9 @@ impl AiConfigStore {
     pub fn save(col: &mut Collection, config: &AiGenerationConfig) -> AiResult<()> {
         let mut merged = config.clone();
 
-        if let Some(existing) = col.get_config_optional::<StoredAiGenerationConfig>(CONFIG_KEY) {
+        if let Some(existing) = col.get_config_optional::<StoredAiGenerationConfig, _>(CONFIG_KEY) {
             let previous: AiGenerationConfig = existing.into();
-            let mut map: BTreeMap<String, ProviderApiKey> = previous
+            let map: BTreeMap<String, ProviderApiKey> = previous
                 .api_keys
                 .into_iter()
                 .map(|key| (key.provider.as_str().to_string(), key))

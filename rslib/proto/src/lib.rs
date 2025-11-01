@@ -21,6 +21,7 @@ protobuf!(card_rendering, "card_rendering");
 protobuf!(cards, "cards");
 protobuf!(collection, "collection");
 protobuf!(config, "config");
+protobuf!(ai_generation, "ai_generation");
 protobuf!(deck_config, "deck_config");
 protobuf!(decks, "decks");
 protobuf!(generic, "generic");

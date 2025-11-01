@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::convert::TryFrom;
 
 use anki_proto::ai_generation as pb;
 
@@ -6,7 +7,7 @@ use crate::ai_generation::config::{AiConfigStore, AiGenerationConfig, ProviderAp
 use crate::ai_generation::service::{AiGenerationController, GenerationOutcome};
 use crate::ai_generation::{FilePayload, GenerationRequest, GeneratedField, GeneratedNote, GeneratedSource, InputPayload, ProviderKind};
 use crate::backend::Backend;
-use crate::error::AnkiError;
+use crate::error::InvalidInputError;
 use crate::prelude::*;
 use crate::services::{AiGenerationService, BackendAiGenerationService};
 
@@ -19,7 +20,7 @@ impl BackendAiGenerationService for Backend {
             let mut config = AiConfigStore::load(col)?;
             config.ensure_defaults();
 
-            let mut constraints = AiGenerationController::build_constraints(&input);
+            let constraints = AiGenerationController::build_constraints(&input);
             let provider = resolve_provider_with_config(&input, &config);
             let payload = payload_from_request(&input)?;
             let model_override = constraints.model_override.clone();
@@ -34,9 +35,34 @@ impl BackendAiGenerationService for Backend {
 
         Ok(outcome_to_proto(outcome))
     }
+
+    fn get_ai_config(&self) -> Result<pb::AiGenerationConfig> {
+        self.with_col(|col| AiGenerationService::get_ai_config(col))
+    }
+
+    fn set_ai_config(&self, input: pb::SetAiConfigRequest) -> Result<()> {
+        self.with_col(|col| AiGenerationService::set_ai_config(col, input))
+    }
 }
 
 impl AiGenerationService for crate::collection::Collection {
+    fn generate_flashcards(
+        &mut self,
+        input: pb::GenerateFlashcardsRequest,
+    ) -> Result<pb::GenerateFlashcardsResponse> {
+        let mut config = AiConfigStore::load(self)?;
+        config.ensure_defaults();
+
+        let constraints = AiGenerationController::build_constraints(&input);
+        let provider = resolve_provider_with_config(&input, &config);
+        let payload = payload_from_request(&input)?;
+        let model_override = constraints.model_override.clone();
+        let request = GenerationRequest::new(provider, payload, constraints, None, model_override);
+
+        let outcome = run_generation(&config, request)?;
+        Ok(outcome_to_proto(outcome))
+    }
+
     fn get_ai_config(&mut self) -> Result<pb::AiGenerationConfig> {
         let mut config = AiConfigStore::load(self)?;
         config.ensure_defaults();
@@ -71,37 +97,58 @@ impl AiGenerationService for crate::collection::Collection {
 }
 
 fn resolve_provider_with_config(request: &pb::GenerateFlashcardsRequest, config: &AiGenerationConfig) -> ProviderKind {
-    let provider_enum = pb::Provider::from_i32(request.provider).unwrap_or(pb::Provider::ProviderUnspecified);
+    let provider_enum = pb::Provider::try_from(request.provider).unwrap_or(pb::Provider::Unspecified);
 
     match provider_enum {
-        pb::Provider::ProviderUnspecified => config.provider_selected(),
+        pb::Provider::Unspecified => config.provider_selected(),
         other => AiGenerationController::resolve_provider(other),
+    }
+}
+
+fn run_generation(
+    config: &AiGenerationConfig,
+    request: GenerationRequest,
+) -> Result<GenerationOutcome> {
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        handle.block_on(AiGenerationController::generate(config, request))
+    } else {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(|err| AnkiError::InvalidInput {
+                source: InvalidInputError {
+                    message: format!("failed to initialize async runtime: {err}"),
+                    source: None,
+                    backtrace: None,
+                },
+            })?;
+        runtime.block_on(AiGenerationController::generate(config, request))
     }
 }
 
 fn payload_from_request(request: &pb::GenerateFlashcardsRequest) -> Result<InputPayload> {
     use pb::InputType;
 
-    match InputType::from_i32(request.input_type).unwrap_or(InputType::InputTypeUnspecified) {
-        InputType::InputTypeText => {
+    match InputType::try_from(request.input_type).unwrap_or(InputType::Unspecified) {
+        InputType::Text => {
             let text = request.text.trim();
             if text.is_empty() {
                 invalid_input!("no text provided for generation");
             }
             Ok(InputPayload::Text(text.to_string()))
         }
-        InputType::InputTypeUrl => {
+        InputType::Url => {
             let url = request.url.trim();
             if url.is_empty() {
                 invalid_input!("no URL provided for generation");
             }
             Ok(InputPayload::Url(url.to_string()))
         }
-        InputType::InputTypeFile => {
+        InputType::File => {
             let file = request
                 .file
                 .as_ref()
-                .ok_or_else(|| AnkiError::invalid_input("missing file payload"))?;
+                .or_invalid("missing file payload")?;
             if file.data.is_empty() {
                 invalid_input!("file payload was empty");
             }
@@ -120,7 +167,7 @@ fn payload_from_request(request: &pb::GenerateFlashcardsRequest) -> Result<Input
             );
             Ok(InputPayload::File(payload))
         }
-        InputType::InputTypeUnspecified => invalid_input!("no input provided for flashcard generation"),
+        InputType::Unspecified => invalid_input!("no input provided for flashcard generation"),
     }
 }
 

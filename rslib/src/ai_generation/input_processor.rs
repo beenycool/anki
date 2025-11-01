@@ -138,10 +138,14 @@ fn is_pdf_mime(mime: Option<&str>, url: Option<&str>) -> bool {
         }
     }
 
-    url.and_then(|raw| Url::parse(raw).ok())
-        .and_then(|parsed| parsed.path_segments().and_then(|segments| segments.last()))
-        .map(|name| name.ends_with(".pdf"))
-        .unwrap_or(false)
+    url.and_then(|raw| {
+        Url::parse(raw).ok().and_then(|parsed| {
+            parsed
+                .path_segments()
+                .and_then(|segments| segments.last().map(|name| name.ends_with(".pdf")))
+        })
+    })
+    .unwrap_or(false)
 }
 
 fn is_html_mime(mime: Option<&str>) -> bool {

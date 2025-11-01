@@ -108,6 +108,7 @@ prost = "0.13"
 prost-build = "0.13"
 prost-reflect = "0.14.7"
 prost-types = "0.13"
+protoc-bin-vendored = "3.1.0"
 pulldown-cmark = "0.13.0"
 pyo3 = { version = "0.25.1", features = ["extension-module", "abi3", "abi3-py39"] }
 rand = "0.9.1"

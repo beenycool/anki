@@ -1,7 +1,7 @@
 use crate::ai_generation::config::AiGenerationConfig;
 use crate::ai_generation::flashcard_parser;
 use crate::ai_generation::input_processor::InputProcessor;
-use crate::ai_generation::providers::{provider_factory, AiProvider};
+use crate::ai_generation::providers::provider_factory;
 use crate::ai_generation::{AiResult, GenerationConstraints, GenerationRequest, GeneratedNote, ProviderKind};
 use crate::notetype::NotetypeId;
 
@@ -17,7 +17,7 @@ impl AiGenerationController {
         config: &AiGenerationConfig,
         request: GenerationRequest,
     ) -> AiResult<GenerationOutcome> {
-        let mut request = Self::apply_config_defaults(request, config);
+        let request = Self::apply_config_defaults(request, config);
 
         let provider = provider_factory(
             &request.provider,
@@ -70,9 +70,9 @@ impl AiGenerationController {
 
     pub fn resolve_provider(provider: anki_proto::ai_generation::Provider) -> ProviderKind {
         match provider {
-            anki_proto::ai_generation::Provider::ProviderGemini => ProviderKind::Gemini,
-            anki_proto::ai_generation::Provider::ProviderOpenrouter => ProviderKind::OpenRouter,
-            anki_proto::ai_generation::Provider::ProviderPerplexity => ProviderKind::Perplexity,
+            anki_proto::ai_generation::Provider::Gemini => ProviderKind::Gemini,
+            anki_proto::ai_generation::Provider::Openrouter => ProviderKind::OpenRouter,
+            anki_proto::ai_generation::Provider::Perplexity => ProviderKind::Perplexity,
             _ => ProviderKind::Gemini,
         }
     }

@@ -448,13 +448,11 @@ mod tests {
 
     #[test]
     fn parses_code_fenced_output() {
-        let raw = """
-```json
+        let raw = r#"```json
 [
   {"front": "Q1", "back": "A1"}
 ]
-```
-""";
+```"#;
 
         let notes = parse_raw_output(raw).unwrap();
         assert_eq!(notes.len(), 1);

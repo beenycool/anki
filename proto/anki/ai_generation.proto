@@ -93,6 +93,11 @@ service AiGenerationService {
   rpc SetAiConfig(SetAiConfigRequest) returns (generic.Empty);
 }
 
-service BackendAiGenerationService {}
+service BackendAiGenerationService {
+  rpc GenerateFlashcards(GenerateFlashcardsRequest)
+      returns (GenerateFlashcardsResponse);
+  rpc GetAiConfig(generic.Empty) returns (AiGenerationConfig);
+  rpc SetAiConfig(SetAiConfigRequest) returns (generic.Empty);
+}
 
 
