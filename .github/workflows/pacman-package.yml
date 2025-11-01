@@ -33,7 +33,6 @@ jobs:
             python3-venv \
             zstd
           corepack enable
-          npm install --global yarn
 
       - name: Prepare Python tooling
         run: |
