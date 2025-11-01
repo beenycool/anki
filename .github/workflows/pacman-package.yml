@@ -79,22 +79,22 @@ jobs:
           chmod +x "$PKGDIR/usr/bin/anki"
           SIZE=$(du -sb "$PKGDIR" | cut -f1)
           BUILD_DATE=$(date +%s)
-          cat > "$PKGDIR/.PKGINFO" <<EOF
-pkgname = ${PKG_NAME}
-pkgver = ${VERSION}
-pkgrel = 1
-pkgdesc = Anki with AI generation support (development build)
-url = https://github.com/beenycool/anki
-builddate = ${BUILD_DATE}
-packager = GitHub Actions
-size = ${SIZE}
-arch = x86_64
-license = AGPL3
-depend = python
-depend = python-pyqt6
-depend = python-pyqt6-webengine
-depend = sqlite
-EOF
+          {
+            echo "pkgname = ${PKG_NAME}"
+            echo "pkgver = ${VERSION}"
+            echo "pkgrel = 1"
+            echo "pkgdesc = Anki with AI generation support (development build)"
+            echo "url = https://github.com/beenycool/anki"
+            echo "builddate = ${BUILD_DATE}"
+            echo "packager = GitHub Actions"
+            echo "size = ${SIZE}"
+            echo "arch = x86_64"
+            echo "license = AGPL3"
+            echo "depend = python"
+            echo "depend = python-pyqt6"
+            echo "depend = python-pyqt6-webengine"
+            echo "depend = sqlite"
+          } > "$PKGDIR/.PKGINFO"
           (cd "$PKGDIR" && fakeroot bsdtar -c --format=mtree --options='!all,use-set,type,uid,gid,mode,time' -f .MTREE .)
           PACKAGE_FILE="${ARTIFACT_DIR}/${PKG_NAME}-${VERSION}-1-x86_64.pkg.tar.zst"
           mkdir -p "$ARTIFACT_DIR"
