@@ -50,7 +50,8 @@ jobs:
           pip install build installer
 
       - name: Build Python wheel
-        run: python -m build --wheel
+        run: |
+          cd pylib && python -m build --wheel
         env:
           CARGO_BUILD_JOBS: 2
 
@@ -59,9 +60,9 @@ jobs:
           PKG_NAME: anki-ai
         run: |
           set -euxo pipefail
-          WHEEL=$(ls dist/anki-*.whl | head -n1)
+          WHEEL=$(ls pylib/dist/anki-*.whl | head -n1)
           if [[ -z "$WHEEL" || ! -f "$WHEEL" ]]; then
-            echo "Error: No wheel file found in dist/" >&2
+            echo "Error: No wheel file found in pylib/dist/" >&2
             exit 1
           fi
           VERSION=$(cat .version)
