@@ -1430,9 +1430,7 @@ title="{}" {}>{}</button>""".format(
             m.action_upgrade_downgrade.setVisible(False)
         qconnect(m.actionPreferences.triggered, self.onPrefs)
 
-        self._action_ai_generator = QAction(
-            tr.ai_generation_menu_action(), self
-        )
+        self._action_ai_generator = QAction(tr.ai_generation_menu_action(), self)
         m.menuTools.addSeparator()
         m.menuTools.addAction(self._action_ai_generator)
         qconnect(self._action_ai_generator.triggered, self.on_open_ai_generator)

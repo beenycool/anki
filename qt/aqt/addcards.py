@@ -7,14 +7,13 @@ from collections.abc import Callable
 
 import aqt.editor
 import aqt.forms
-from aqt import dialogs
 from anki._legacy import deprecated
 from anki.collection import OpChanges, OpChangesWithCount, SearchNode
 from anki.decks import DeckId
 from anki.models import NotetypeId
 from anki.notes import Note, NoteFieldsCheckResult, NoteId
 from anki.utils import html_to_text_line, is_mac
-from aqt import AnkiQt, gui_hooks
+from aqt import AnkiQt, dialogs, gui_hooks
 from aqt.deckchooser import DeckChooser
 from aqt.notetypechooser import NotetypeChooser
 from aqt.operations.note import add_note

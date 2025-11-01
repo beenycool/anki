@@ -67,7 +67,10 @@ fn add_folder(map: &mut TranslationsByLang, folder: &Path, lang: &str) {
 /// assumption the templates were extracted from the source tree.
 fn add_translation_root(map: &mut TranslationsByLang, root: &Path, ignore_templates: bool) {
     let Ok(entries) = fs::read_dir(root) else {
-        println!("cargo:warning=skipping missing translation root {}", root.display());
+        println!(
+            "cargo:warning=skipping missing translation root {}",
+            root.display()
+        );
         return;
     };
     for entry in entries {

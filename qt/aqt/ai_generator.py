@@ -90,24 +90,16 @@ class AiGeneratorDialog(QDialog):
         self.setWindowTitle(tr.ai_generation_window_title())
 
         tabs = self.form.inputTabs
-        tabs.setTabText(
-            tabs.indexOf(self.form.textTab), tr.ai_generation_tab_text()
-        )
-        tabs.setTabText(
-            tabs.indexOf(self.form.urlTab), tr.ai_generation_tab_url()
-        )
-        tabs.setTabText(
-            tabs.indexOf(self.form.fileTab), tr.ai_generation_tab_file()
-        )
+        tabs.setTabText(tabs.indexOf(self.form.textTab), tr.ai_generation_tab_text())
+        tabs.setTabText(tabs.indexOf(self.form.urlTab), tr.ai_generation_tab_url())
+        tabs.setTabText(tabs.indexOf(self.form.fileTab), tr.ai_generation_tab_file())
 
         self.form.textInput.setPlaceholderText(tr.ai_generation_text_placeholder())
         self.form.urlInput.setPlaceholderText(tr.ai_generation_url_placeholder())
         self.form.urlPreview.setPlaceholderText(
             tr.ai_generation_url_preview_placeholder()
         )
-        self.form.filePathInput.setPlaceholderText(
-            tr.ai_generation_file_placeholder()
-        )
+        self.form.filePathInput.setPlaceholderText(tr.ai_generation_file_placeholder())
         self.form.browseButton.setText(tr.ai_generation_browse_button())
         self.form.fetchButton.setText(tr.ai_generation_fetch_button())
         self.form.fileHint.setText(tr.ai_generation_file_hint())
@@ -119,22 +111,16 @@ class AiGeneratorDialog(QDialog):
         self.form.openaiLabel.setText(tr.ai_generation_openai_key_label())
         self.form.perplexityLabel.setText(tr.ai_generation_perplexity_key_label())
         self.form.noteTypeLabel.setText(tr.ai_generation_note_type_label())
-        self.form.useDefaultNoteType.setText(
-            tr.ai_generation_use_default_notetype()
-        )
+        self.form.useDefaultNoteType.setText(tr.ai_generation_use_default_notetype())
         self.form.deckLabel.setText(tr.ai_generation_deck_label())
         self.form.maxCardsLabel.setText(tr.ai_generation_max_cards_label())
         self.form.modelLabel.setText(tr.ai_generation_model_override_label())
-        self.form.modelRefreshButton.setText(
-            tr.ai_generation_model_refresh_button()
-        )
+        self.form.modelRefreshButton.setText(tr.ai_generation_model_refresh_button())
         self.form.promptLabel.setText(tr.ai_generation_prompt_override_label())
 
         self.form.generateButton.setText(tr.ai_generation_generate_button())
         self.form.clearButton.setText(tr.ai_generation_clear_button())
-        self.form.addSelectedButton.setText(
-            tr.ai_generation_add_selected_button()
-        )
+        self.form.addSelectedButton.setText(tr.ai_generation_add_selected_button())
         self.form.addAllButton.setText(tr.ai_generation_add_all_button())
 
         self.form.previewGroup.setTitle(tr.ai_generation_preview_group())
@@ -218,7 +204,9 @@ class AiGeneratorDialog(QDialog):
     ) -> None:
         combo = self.form.modelOverrideCombo
         current_text = (
-            combo.currentText() if preserve_current else self._selected_models.get(provider, "")
+            combo.currentText()
+            if preserve_current
+            else self._selected_models.get(provider, "")
         )
         source = models if models is not None else self._models_cache.get(provider, [])
         unique: List[str] = []
@@ -317,7 +305,9 @@ class AiGeneratorDialog(QDialog):
                 continue
             if entry.masked:
                 line_edit.clear()
-                line_edit.setPlaceholderText(tr.ai_generation_saved_api_key_placeholder())
+                line_edit.setPlaceholderText(
+                    tr.ai_generation_saved_api_key_placeholder()
+                )
             else:
                 line_edit.setText(entry.api_key)
 
@@ -340,7 +330,11 @@ class AiGeneratorDialog(QDialog):
         current_ntid = self.mw.col.models.current()["id"]
         target_ntid = (
             self._requested_note_type_id
-            or (self._default_notetype_id if self.form.useDefaultNoteType.isChecked() else 0)
+            or (
+                self._default_notetype_id
+                if self.form.useDefaultNoteType.isChecked()
+                else 0
+            )
             or current_ntid
         )
         combo_index = self.form.noteTypeCombo.findData(target_ntid)
@@ -355,7 +349,9 @@ class AiGeneratorDialog(QDialog):
             self.form.deckCombo.addItem(entry.name, entry.id)
             self._deck_ids[idx] = entry.id
 
-        current_deck = int(self._requested_deck_id or self.mw.col.decks.get_current_id())
+        current_deck = int(
+            self._requested_deck_id or self.mw.col.decks.get_current_id()
+        )
         combo_index = self.form.deckCombo.findData(current_deck)
         if combo_index != -1:
             self.form.deckCombo.setCurrentIndex(combo_index)
@@ -558,14 +554,20 @@ class AiGeneratorDialog(QDialog):
             preview_notes.append(
                 PreviewNote(
                     proto=proto,
-                    display_front=self._display_field(proto, ["front", "question", "prompt"]),
-                    display_back=self._display_field(proto, ["back", "answer", "response"]),
+                    display_front=self._display_field(
+                        proto, ["front", "question", "prompt"]
+                    ),
+                    display_back=self._display_field(
+                        proto, ["back", "answer", "response"]
+                    ),
                     display_source=self._display_source(proto.source),
                 )
             )
         self._set_preview_notes(preview_notes)
 
-    def _display_field(self, proto: ai_pb.GeneratedNote, preferred_names: List[str]) -> str:
+    def _display_field(
+        self, proto: ai_pb.GeneratedNote, preferred_names: List[str]
+    ) -> str:
         mapping = {field.name.lower(): field.value for field in proto.fields}
         for name in preferred_names:
             if name in mapping:
@@ -641,8 +643,7 @@ class AiGeneratorDialog(QDialog):
                 parent=self,
                 op=op,
                 success=lambda _: self._on_add_success(unique_indices),
-            )
-            .failure(self._on_add_failure)
+            ).failure(self._on_add_failure)
         ).run_in_background(initiator=self)
 
     def _create_note(self, proto: ai_pb.GeneratedNote) -> tuple[Note, DeckId]:
@@ -681,7 +682,9 @@ class AiGeneratorDialog(QDialog):
                 None,
             )
             if back_index is not None:
-                extras = [value.strip() for value in field_map.values() if value.strip()]
+                extras = [
+                    value.strip() for value in field_map.values() if value.strip()
+                ]
                 if extras:
                     segments = [note.fields[back_index].strip(), "\n\n".join(extras)]
                     note.fields[back_index] = "\n\n".join(
@@ -717,7 +720,9 @@ class AiGeneratorDialog(QDialog):
     def _on_add_success(self, indices: Iterable[int]) -> None:
         indices_set = set(indices)
         self._generated_notes = [
-            note for idx, note in enumerate(self._generated_notes) if idx not in indices_set
+            note
+            for idx, note in enumerate(self._generated_notes)
+            if idx not in indices_set
         ]
         self._set_preview_notes(self._generated_notes)
         tooltip(tr.ai_generation_added_cards_tooltip(), parent=self)
@@ -745,4 +750,3 @@ def open_ai_generator_dialog(
     mw: AnkiQt, *, note_type_id: Optional[int] = None, deck_id: Optional[int] = None
 ) -> AiGeneratorDialog:
     return AiGeneratorDialog(mw, note_type_id=note_type_id, deck_id=deck_id)
-

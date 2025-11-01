@@ -116,5 +116,3 @@ service BackendAiGenerationService {
   rpc SetAiConfig(SetAiConfigRequest) returns (generic.Empty);
   rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
 }
-
-

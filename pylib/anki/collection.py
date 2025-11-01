@@ -7,12 +7,12 @@ from collections.abc import Generator, Iterable, Sequence
 from typing import Any, Literal, Union, cast
 
 from anki import (
+    ai_generation_pb2,
     ankiweb_pb2,
     card_rendering_pb2,
     collection_pb2,
     config_pb2,
     generic_pb2,
-    ai_generation_pb2,
     image_occlusion_pb2,
     import_export_pb2,
     links_pb2,

@@ -10,6 +10,7 @@ on:
 jobs:
   pacman:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +51,8 @@ jobs:
 
       - name: Build Python wheel
         run: python -m build --wheel
+        env:
+          CARGO_BUILD_JOBS: 2
 
       - name: Create pacman package
         env:

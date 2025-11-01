@@ -154,7 +154,6 @@ fn resolve_provider_from_value(provider: i32, config: &AiGenerationConfig) -> Pr
     }
 }
 
-
 fn prepare_model_request(
     col: &mut Collection,
     input: &pb::ListModelsRequest,

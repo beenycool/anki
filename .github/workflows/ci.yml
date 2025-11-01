@@ -10,6 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -22,15 +23,6 @@ jobs:
           node-version: "20"
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Configure Rust for CI
-        run: |
-          # Reduce parallel jobs to prevent resource exhaustion
-          echo "CARGO_BUILD_JOBS=2" >> $GITHUB_ENV
-          # Limit rustc parallel codegen units
-          echo "RUSTFLAGS=-C codegen-units=1 -C opt-level=1" >> $GITHUB_ENV
-          # Disable incremental compilation to save disk space
-          echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
 
       - name: Install system dependencies
         run: |
@@ -84,6 +76,8 @@ jobs:
 
       - name: Check Rust code
         run: cargo check
+        env:
+          CARGO_BUILD_JOBS: 2
 
       - name: Check Python code
         run: ./tools/dmypy
@@ -93,6 +87,8 @@ jobs:
 
       - name: Run full build check
         run: ./check
+        env:
+          CARGO_BUILD_JOBS: 2
 
       - name: Build Python wheel
         run: python -m build --wheel

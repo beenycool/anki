@@ -45,9 +45,7 @@ impl InputProcessor {
     }
 
     async fn process_url(url: &str) -> AiResult<ProcessedInput> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()?;
+        let client = Client::builder().timeout(Duration::from_secs(30)).build()?;
         let response = client.get(url).send().await?.error_for_status()?;
         let content_type = response
             .headers()
@@ -59,7 +57,10 @@ impl InputProcessor {
         // Check Content-Length header if present
         if let Some(content_length) = response.content_length() {
             if content_length > MAX_RESPONSE_BYTES {
-                return Err(crate::invalid_input!("Response too large: {} bytes", content_length));
+                return Err(crate::invalid_input!(
+                    "Response too large: {} bytes",
+                    content_length
+                ));
             }
         }
 
@@ -199,7 +200,11 @@ fn html_to_text(html: &str) -> String {
 fn filename_from_url(url: &str) -> Option<String> {
     Url::parse(url)
         .ok()
-        .and_then(|parsed| parsed.path_segments().and_then(|segments| segments.last().map(|s| s.to_string())))
+        .and_then(|parsed| {
+            parsed
+                .path_segments()
+                .and_then(|segments| segments.last().map(|s| s.to_string()))
+        })
         .filter(|name| !name.is_empty())
 }
 
@@ -229,6 +234,3 @@ fn normalize_whitespace(text: &str) -> String {
         normalized
     }
 }
-
-
-

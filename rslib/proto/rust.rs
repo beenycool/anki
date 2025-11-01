@@ -109,10 +109,16 @@ fn set_protoc_path() {
                     env::set_var("PROTOC", custom_protoc);
                     return;
                 } else {
-                    println!("cargo:warning=PROTOC_BINARY path exists but is not executable: {}", custom_protoc);
+                    println!(
+                        "cargo:warning=PROTOC_BINARY path exists but is not executable: {}",
+                        custom_protoc
+                    );
                 }
             } else {
-                println!("cargo:warning=Could not get metadata for PROTOC_BINARY: {}", custom_protoc);
+                println!(
+                    "cargo:warning=Could not get metadata for PROTOC_BINARY: {}",
+                    custom_protoc
+                );
             }
             #[cfg(not(unix))]
             {
@@ -120,7 +126,10 @@ fn set_protoc_path() {
                 return;
             }
         } else {
-            println!("cargo:warning=PROTOC_BINARY path does not exist or is not a file: {}", custom_protoc);
+            println!(
+                "cargo:warning=PROTOC_BINARY path does not exist or is not a file: {}",
+                custom_protoc
+            );
         }
     }
 

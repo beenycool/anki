@@ -114,8 +114,8 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
                 }
                 continue;
             }
-            "source_url" | "sourceurl" | "source_link" | "sourcelink" | "url"
-            | "link" | "reference_url" | "referenceurl" => {
+            "source_url" | "sourceurl" | "source_link" | "sourcelink" | "url" | "link"
+            | "reference_url" | "referenceurl" => {
                 if source_url.is_none() {
                     source_url = value_to_string(value);
                 }
@@ -136,7 +136,12 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
             }
             "source" | "reference" | "citation" => {
                 if source_url.is_none() || source_excerpt.is_none() || source_title.is_none() {
-                    parse_source_object(value, &mut source_url, &mut source_excerpt, &mut source_title);
+                    parse_source_object(
+                        value,
+                        &mut source_url,
+                        &mut source_excerpt,
+                        &mut source_title,
+                    );
                 }
                 continue;
             }
@@ -157,7 +162,6 @@ fn parse_card_object(object: Map<String, Value>) -> Option<GeneratedNote> {
             extra_fields.push((key.clone(), text));
         }
     }
-
 
     let front = front
         .or_else(|| extract_from_extra(&mut extra_fields, &["front", "question"]))
@@ -323,7 +327,12 @@ fn split_front_back(text: &str) -> Option<GeneratedNote> {
     })
 }
 
-fn push_field(fields: &mut Vec<GeneratedField>, seen: &mut HashSet<String>, name: String, value: String) {
+fn push_field(
+    fields: &mut Vec<GeneratedField>,
+    seen: &mut HashSet<String>,
+    name: String,
+    value: String,
+) {
     let trimmed_value = value.trim();
     if trimmed_value.is_empty() {
         return;
@@ -438,9 +447,19 @@ mod tests {
         assert_eq!(notes.len(), 2);
         assert_eq!(notes[0].fields[0].name, "Front");
         assert_eq!(notes[0].fields[1].name, "Back");
-        assert_eq!(notes[0].source.as_ref().unwrap().url.as_deref(), Some("https://example.com"));
+        assert_eq!(
+            notes[0].source.as_ref().unwrap().url.as_deref(),
+            Some("https://example.com")
+        );
         assert_eq!(notes[1].fields[0].value, "Capital of France");
-        assert!(notes[1].source.as_ref().unwrap().excerpt.as_ref().unwrap().contains("European capitals"));
+        assert!(notes[1]
+            .source
+            .as_ref()
+            .unwrap()
+            .excerpt
+            .as_ref()
+            .unwrap()
+            .contains("European capitals"));
     }
 
     #[test]
